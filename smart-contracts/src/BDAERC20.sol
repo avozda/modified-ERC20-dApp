@@ -4,17 +4,18 @@ pragma solidity 0.8.29;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-enum UserRole {
-    mintingAdmin,
-    restrAdmin,
-    ipAdmin
-}
-
 contract BDAERC20 is ERC20 {
     using ECDSA for bytes32;
 
     uint256 public immutable maxSupply;
-    mapping(address => UserRole) public userRoles;
+
+    mapping(address => bool) public mintingAdmins;
+    mapping(address => bool) public restrAdmins;
+    mapping(address => bool) public idpAdmins;
+    // Counters for each admin type
+    uint256 public mintingAdminCount;
+    uint256 public restrAdminCount;
+    uint256 public idpAdminCount;
 
     uint256 public immutable maxDailyMint;
     mapping(address => uint256) public dailyMintedAmount;
@@ -29,6 +30,18 @@ contract BDAERC20 is ERC20 {
     mapping(address => uint256) public verifiedAddresses; // Maps address to verification timestamp
     mapping(address => bool) public blockedAddresses; // Maps address to blocked status
     uint256 public immutable expirationTime;
+
+    mapping(address => mapping(address => bool)) public mintinAdminVotes;
+    mapping(address => mapping(address => bool)) public restrAdminVotes;
+    mapping(address => mapping(address => bool)) public idpAdminVotes;
+
+    mapping(address => address[]) public mintingAdminVotesList;
+    mapping(address => address[]) public restrAdminVotesList;
+    mapping(address => address[]) public idpAdminVotesList;
+
+    mapping(address => uint256) public mintingAdminVotesCount;
+    mapping(address => uint256) public restrAdminVotesCount;
+    mapping(address => uint256) public idpAdminVotesCount;
 
     event TokensMinted(address indexed to, uint256 amount);
     event TokensTransferred(
@@ -45,7 +58,7 @@ contract BDAERC20 is ERC20 {
         uint256 _expirationTime,
         address[] memory _mintingAdmins,
         address[] memory _restrAdmins,
-        address[] memory _ipAdmins,
+        address[] memory _idpAdmins,
         address[] memory _identityProviders
     ) ERC20("BDA25 Token", "BDA25") {
         maxSupply = _maxSupply;
@@ -53,40 +66,47 @@ contract BDAERC20 is ERC20 {
         expirationTime = _expirationTime;
 
         for (uint256 i = 0; i < _mintingAdmins.length; i++) {
-            userRoles[_mintingAdmins[i]] = UserRole.mintingAdmin;
+            mintingAdmins[_mintingAdmins[i]] = true;
         }
+        mintingAdminCount = _mintingAdmins.length;
+
         for (uint256 i = 0; i < _restrAdmins.length; i++) {
-            userRoles[_restrAdmins[i]] = UserRole.restrAdmin;
+            restrAdmins[_restrAdmins[i]] = true;
         }
-        for (uint256 i = 0; i < _ipAdmins.length; i++) {
-            userRoles[_ipAdmins[i]] = UserRole.ipAdmin;
+        restrAdminCount = _restrAdmins.length;
+
+        for (uint256 i = 0; i < _idpAdmins.length; i++) {
+            idpAdmins[_idpAdmins[i]] = true;
         }
+        idpAdminCount = _idpAdmins.length;
+
         for (uint256 i = 0; i < _identityProviders.length; i++) {
             trustedIdentityProviders[_identityProviders[i]] = true;
         }
     }
 
-    modifier onlyMintingAdmin() {
+    modifier onlyAdmin() {
         require(
-            userRoles[msg.sender] == UserRole.mintingAdmin,
-            "Not a minting admin"
+            mintingAdmins[msg.sender] ||
+                restrAdmins[msg.sender] ||
+                idpAdmins[msg.sender],
+            "Not an admin"
         );
+        _;
+    }
+
+    modifier onlyMintingAdmin() {
+        require(mintingAdmins[msg.sender], "Not a minting admin");
         _;
     }
 
     modifier onlyRestrAdmin() {
-        require(
-            userRoles[msg.sender] == UserRole.restrAdmin,
-            "Not a restriction admin"
-        );
+        require(restrAdmins[msg.sender], "Not a restriction admin");
         _;
     }
 
-    modifier onlyIPAdmin() {
-        require(
-            userRoles[msg.sender] == UserRole.ipAdmin,
-            "Not an identity provider admin"
-        );
+    modifier onlyIDPAdmin() {
+        require(idpAdmins[msg.sender], "Not an identity provider admin");
         _;
     }
 
@@ -161,11 +181,11 @@ contract BDAERC20 is ERC20 {
         verifiedAddresses[msg.sender] = timestamp;
     }
 
-    function addIdentityProvider(address provider) external onlyIPAdmin {
+    function addIdentityProvider(address provider) external onlyIDPAdmin {
         trustedIdentityProviders[provider] = true;
     }
 
-    function removeIdentityProvider(address provider) external onlyIPAdmin {
+    function removeIdentityProvider(address provider) external onlyIDPAdmin {
         trustedIdentityProviders[provider] = false;
     }
 
@@ -181,10 +201,10 @@ contract BDAERC20 is ERC20 {
     function addVerifiedAddress(
         address user,
         uint256 timestamp
-    ) external onlyIPAdmin {
+    ) external onlyIDPAdmin {
         verifiedAddresses[user] = timestamp;
     }
-    function removeVerifiedAddress(address user) external onlyIPAdmin {
+    function removeVerifiedAddress(address user) external onlyIDPAdmin {
         verifiedAddresses[user] = 0;
     }
 
@@ -230,5 +250,52 @@ contract BDAERC20 is ERC20 {
         _transfer(from, to, amount);
         dailyTransferredAmount[from] += amount;
         emit TokensTransferred(from, to, amount);
+    }
+
+    function voteMintingAdmin(address user) external onlyMintingAdmin {
+        require(!mintinAdminVotes[user][msg.sender], "Already voted");
+        mintinAdminVotes[msg.sender][user] = true;
+        mintingAdminVotesCount[user] += 1;
+        mintingAdminVotesList[user].push(msg.sender);
+        if (mintingAdminVotesCount[user] > mintingAdminCount / 2) {
+            mintingAdmins[user] = mintingAdmins[user] ? false : true;
+            mintingAdminVotesCount[user] = 0;
+
+            for (uint256 i = 0; i < mintingAdminVotesList[user].length; i++) {
+                mintinAdminVotes[user][mintingAdminVotesList[user][i]] = false;
+            }
+            delete mintingAdminVotesList[user];
+        }
+    }
+
+    function voteRestrAdmin(address user) external onlyRestrAdmin {
+        require(!restrAdminVotes[user][msg.sender], "Already voted");
+        restrAdminVotes[msg.sender][user] = true;
+        restrAdminVotesCount[user] += 1;
+        restrAdminVotesList[user].push(msg.sender);
+        if (restrAdminVotesCount[user] > restrAdminCount / 2) {
+            restrAdmins[user] = restrAdmins[user] ? false : true;
+            restrAdminVotesCount[user] = 0;
+            for (uint256 i = 0; i < restrAdminVotesList[user].length; i++) {
+                restrAdminVotes[user][restrAdminVotesList[user][i]] = false;
+            }
+            delete restrAdminVotesList[user];
+        }
+    }
+
+    function voteIDPAdmin(address user) external onlyIDPAdmin {
+        require(!idpAdminVotes[user][msg.sender], "Already voted");
+        idpAdminVotes[msg.sender][user] = true;
+        idpAdminVotesCount[user] += 1;
+        idpAdminVotesList[user].push(msg.sender);
+        if (idpAdminVotesCount[user] > idpAdminCount / 2) {
+            idpAdmins[user] = idpAdmins[user] ? false : true;
+            idpAdminVotesCount[user] = 0;
+
+            for (uint256 i = 0; i < idpAdminVotesList[user].length; i++) {
+                idpAdminVotes[user][idpAdminVotesList[user][i]] = false;
+            }
+            delete idpAdminVotesList[user];
+        }
     }
 }
