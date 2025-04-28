@@ -27,7 +27,7 @@ contract BDAERC20 is ERC20 {
     // Identity verification related variables
     mapping(address => bool) public trustedIdentityProviders;
     mapping(address => uint256) public verifiedAddresses; // Maps address to verification timestamp
-    mapping(address => uint256) public expirationTime;
+    uint256 public immutable expirationTime;
 
     constructor(
         uint256 _maxSupply,
@@ -150,7 +150,7 @@ contract BDAERC20 is ERC20 {
         trustedIdentityProviders[provider] = true;
     }
 
-    function removeIdentityProvider(address provider) external onlyIPAdmin { {
+    function removeIdentityProvider(address provider) external onlyIPAdmin {
         trustedIdentityProviders[provider] = false;
     }
 
