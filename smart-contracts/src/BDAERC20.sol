@@ -27,7 +27,17 @@ contract BDAERC20 is ERC20 {
     // Identity verification related variables
     mapping(address => bool) public trustedIdentityProviders;
     mapping(address => uint256) public verifiedAddresses; // Maps address to verification timestamp
+    mapping(address => bool) public blockedAddresses; // Maps address to blocked status
     uint256 public immutable expirationTime;
+
+    event TokensMinted(address indexed to, uint256 amount);
+    event TokensTransferred(
+        address indexed from,
+        address indexed to,
+        uint256 amount
+    );
+    event TransferRestrictionCreated(address indexed user);
+    event TransferRestrictionRemoved(address indexed user);
 
     constructor(
         uint256 _maxSupply,
@@ -108,7 +118,12 @@ contract BDAERC20 is ERC20 {
         if (verifiedAddresses[user] == 0) {
             return false;
         }
+
         if (block.timestamp > verifiedAddresses[user] + expirationTime) {
+            return false;
+        }
+
+        if (blockedAddresses[user]) {
             return false;
         }
         return true;
@@ -154,6 +169,25 @@ contract BDAERC20 is ERC20 {
         trustedIdentityProviders[provider] = false;
     }
 
+    function blockAddress(address user) external onlyRestrAdmin {
+        blockedAddresses[user] = true;
+        emit TransferRestrictionCreated(user);
+    }
+    function unblockAddress(address user) external onlyRestrAdmin {
+        blockedAddresses[user] = false;
+        emit TransferRestrictionRemoved(user);
+    }
+
+    function addVerifiedAddress(
+        address user,
+        uint256 timestamp
+    ) external onlyIPAdmin {
+        verifiedAddresses[user] = timestamp;
+    }
+    function removeVerifiedAddress(address user) external onlyIPAdmin {
+        verifiedAddresses[user] = 0;
+    }
+
     function mint(
         address to,
         uint256 amount
@@ -170,6 +204,7 @@ contract BDAERC20 is ERC20 {
         );
         _mint(to, amount);
         dailyMintedAmount[msg.sender] += amount;
+        emit TokensMinted(to, amount);
     }
 
     function setDailyTransferLimit(
@@ -194,5 +229,6 @@ contract BDAERC20 is ERC20 {
     {
         _transfer(from, to, amount);
         dailyTransferredAmount[from] += amount;
+        emit TokensTransferred(from, to, amount);
     }
 }
