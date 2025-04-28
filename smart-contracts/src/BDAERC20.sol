@@ -6,7 +6,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 enum UserRole {
     mintingAdmin,
-    restrAdmin
+    restrAdmin,
+    ipAdmin
 }
 
 contract BDAERC20 is ERC20 {
@@ -26,22 +27,29 @@ contract BDAERC20 is ERC20 {
     // Identity verification related variables
     mapping(address => bool) public trustedIdentityProviders;
     mapping(address => uint256) public verifiedAddresses; // Maps address to verification timestamp
+    mapping(address => uint256) public expirationTime;
 
     constructor(
         uint256 _maxSupply,
         uint256 _maxDailyMint,
+        uint256 _expirationTime,
         address[] memory _mintingAdmins,
         address[] memory _restrAdmins,
+        address[] memory _ipAdmins,
         address[] memory _identityProviders
     ) ERC20("BDA25 Token", "BDA25") {
         maxSupply = _maxSupply;
         maxDailyMint = _maxDailyMint;
+        expirationTime = _expirationTime;
 
         for (uint256 i = 0; i < _mintingAdmins.length; i++) {
             userRoles[_mintingAdmins[i]] = UserRole.mintingAdmin;
         }
         for (uint256 i = 0; i < _restrAdmins.length; i++) {
             userRoles[_restrAdmins[i]] = UserRole.restrAdmin;
+        }
+        for (uint256 i = 0; i < _ipAdmins.length; i++) {
+            userRoles[_ipAdmins[i]] = UserRole.ipAdmin;
         }
         for (uint256 i = 0; i < _identityProviders.length; i++) {
             trustedIdentityProviders[_identityProviders[i]] = true;
@@ -60,6 +68,14 @@ contract BDAERC20 is ERC20 {
         require(
             userRoles[msg.sender] == UserRole.restrAdmin,
             "Not a restriction admin"
+        );
+        _;
+    }
+
+    modifier onlyIPAdmin() {
+        require(
+            userRoles[msg.sender] == UserRole.ipAdmin,
+            "Not an identity provider admin"
         );
         _;
     }
@@ -88,7 +104,14 @@ contract BDAERC20 is ERC20 {
     }
 
     function isVerified(address user) public view returns (bool) {
-        return verifiedAddresses[user] > 0;
+        // Check if the user is verified and if the verification has not expired
+        if (verifiedAddresses[user] == 0) {
+            return false;
+        }
+        if (block.timestamp > verifiedAddresses[user] + expirationTime) {
+            return false;
+        }
+        return true;
     }
 
     function verifyIdentity(
@@ -123,11 +146,11 @@ contract BDAERC20 is ERC20 {
         verifiedAddresses[msg.sender] = timestamp;
     }
 
-    function addIdentityProvider(address provider) external onlyRestrAdmin {
+    function addIdentityProvider(address provider) external onlyIPAdmin {
         trustedIdentityProviders[provider] = true;
     }
 
-    function removeIdentityProvider(address provider) external onlyRestrAdmin {
+    function removeIdentityProvider(address provider) external onlyIPAdmin { {
         trustedIdentityProviders[provider] = false;
     }
 
