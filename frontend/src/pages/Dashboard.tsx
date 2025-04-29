@@ -1,6 +1,12 @@
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatUnits } from "viem";
+import { useReadContract } from "wagmi";
+import ContractOptions from "@/lib/contract";
+import { PageLoader } from "@/components/ui/overlay/PageLoader";
+import { UnknownError } from "@/components/ui/overlay/UnknownError";
+
 
 export function Dashboard() {
     const { walletAddress } = useAuth();
@@ -10,6 +16,35 @@ export function Dashboard() {
         ? `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`
         : '';
 
+    const { data: balance, error, isLoading, refetch } = useReadContract({
+        ...ContractOptions,
+        functionName: 'balanceOf',
+        args: walletAddress ? [walletAddress] : undefined,
+        query: {
+            enabled: !!walletAddress
+        }
+    });
+
+    // Format the balance with 18 decimals (standard for ERC20)
+    const formattedBalance = balance
+        ? formatUnits(balance as bigint, 18)
+        : '0';
+
+    // Show loader when data is loading
+    if (isLoading) {
+        return <PageLoader message="Loading account data..." />;
+    }
+
+    // Show error state if there's an issue fetching data
+    if (error) {
+        return (
+            <UnknownError
+                title="Failed to load data"
+                message={error.message || "Could not fetch your account information. Please try again."}
+                onRetry={() => refetch()}
+            />
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -40,7 +75,7 @@ export function Dashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">BDA25 Tokens</p>
-                                <p className="text-3xl font-bold">0</p>
+                                <p className="text-3xl font-bold">{formattedBalance}</p>
                             </div>
 
                         </div>
