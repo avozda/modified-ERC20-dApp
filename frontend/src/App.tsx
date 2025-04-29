@@ -1,11 +1,31 @@
-import { Button } from "@/components/ui/button"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/lib/auth";
+import { ProtectedRoute } from "@/lib/protected-route";
+import { Login } from "@/pages/Login";
+import { Dashboard } from "@/pages/Dashboard";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh">
-      <Button variant={"default"} onClick={() => console.log("klick")}>Click me</Button>
-    </div>
-  )
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<Login />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Dashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
