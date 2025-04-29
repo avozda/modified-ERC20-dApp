@@ -3,10 +3,12 @@ import { AuthProvider } from "@/lib/auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Login } from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
+import { Mint } from "@/pages/Mint";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { WagmiProvider } from "wagmi";
 import { config } from "../wagmi.config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient()
 
@@ -28,9 +30,20 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/mint"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Mint />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </BrowserRouter>
+          <Toaster />
         </AuthProvider>
       </QueryClientProvider >
     </WagmiProvider>

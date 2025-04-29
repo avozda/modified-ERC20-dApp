@@ -6,6 +6,7 @@ import { useReadContract } from "wagmi";
 import ContractOptions from "@/lib/contract";
 import { PageLoader } from "@/components/ui/overlay/PageLoader";
 import { UnknownError } from "@/components/ui/overlay/UnknownError";
+import { TransferCard } from "@/components/ui/TransferCard";
 
 
 export function Dashboard() {
@@ -83,6 +84,9 @@ export function Dashboard() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Transfer Component */}
+            <TransferCard />
         </div>
     );
 }

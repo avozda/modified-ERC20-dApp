@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { Navigate } from "react-router-dom";
 import { PageLoader } from "@/components/ui/overlay/PageLoader";
-import { UnknownError } from "@/components/ui/overlay/UnknownError";
 
 export function Login() {
     const { login, isAuthenticated, isLoading, error } = useAuth();
@@ -21,11 +20,9 @@ export function Login() {
         <div className="flex flex-col items-center justify-center min-h-svh gap-6">
             <h1 className="text-3xl font-bold">Connect your wallet</h1>
             {error && (
-                <UnknownError
-                    title="Connection Error"
-                    message={error}
-                    onRetry={login}
-                />
+                <div className="p-4 text-white bg-red-500 rounded-md">
+                    {error}
+                </div>
             )}
             <Button
                 onClick={login}

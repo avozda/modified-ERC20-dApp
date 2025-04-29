@@ -64,7 +64,6 @@ contract BDAERC20 is ERC20, TransferLimiter {
         onlyMintingAdmin
         checkLimitRefresh(lastDailyMintResetTimestamp, dailyMintedAmount)
         meetsLimit(totalSupply() + amount, maxSupply)
-        onlyVerified(to)
     {
         require(
             dailyMintedAmount[msg.sender] + amount <= maxDailyMint,
