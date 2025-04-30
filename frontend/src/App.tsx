@@ -8,6 +8,9 @@ import { Approval } from "@/pages/Approval";
 import { AddressManagement } from "@/pages/AddressManagement";
 import { TransferRestrict } from "@/pages/TransferRestrict";
 import { IdentityProviderManagement } from "@/pages/IdentityProviderManagement";
+import { MintingAdminVoting } from "@/pages/MintingAdminVoting";
+import { RestrictionAdminVoting } from "@/pages/RestrictionAdminVoting";
+import { IDPAdminVoting } from "@/pages/IDPAdminVoting";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { UserProvider } from "@/lib/user-context";
@@ -125,6 +128,36 @@ function App() {
                 <ProtectedRoute requiredRole="idpAdmin">
                   <DashboardLayout>
                     <IdentityProviderManagement />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/minting-admin-voting"
+              element={
+                <ProtectedRoute requiredRole="mintingAdmin">
+                  <DashboardLayout>
+                    <MintingAdminVoting />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/restriction-admin-voting"
+              element={
+                <ProtectedRoute requiredRole="restrictionAdmin">
+                  <DashboardLayout>
+                    <RestrictionAdminVoting />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/idp-admin-voting"
+              element={
+                <ProtectedRoute requiredRole="idpAdmin">
+                  <DashboardLayout>
+                    <IDPAdminVoting />
                   </DashboardLayout>
                 </ProtectedRoute>
               }

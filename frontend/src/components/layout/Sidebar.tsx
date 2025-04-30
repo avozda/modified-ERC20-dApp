@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, LogOut, Coins, Copy, Check, ShieldAlert, Sliders, Key } from "lucide-react";
+import { LayoutDashboard, LogOut, Coins, Copy, Check, ShieldAlert, Sliders, Key, Vote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { Button } from "../ui/button";
@@ -32,10 +32,14 @@ export function Sidebar() {
         switch (route) {
             case '/mint':
                 return userData.isMintingAdmin;
+            case '/minting-admin-voting':
+                return userData.isMintingAdmin;
             case '/address-management':
             case '/transfer-restrict':
+            case '/restriction-admin-voting':
                 return userData.isRestrictionAdmin;
             case '/identity-providers':
+            case '/idp-admin-voting':
                 return userData.isIdpAdmin;
             case '/approval':
                 return !userData.isBlocked && userData.isVerified;
@@ -48,11 +52,14 @@ export function Sidebar() {
     const getTooltipMessage = (route: string) => {
         switch (route) {
             case '/mint':
+            case '/minting-admin-voting':
                 return "Requires Minting Admin role";
             case '/address-management':
             case '/transfer-restrict':
+            case '/restriction-admin-voting':
                 return "Requires Restriction Admin role";
             case '/identity-providers':
+            case '/idp-admin-voting':
                 return "Requires IDP Admin role";
             case '/approval':
                 return "Not available for blocked or unverified addresses";
@@ -133,10 +140,26 @@ export function Sidebar() {
                         label="Transfer Limits"
                         icon={<Sliders size={18} />}
                     />
+
                     <NavItem
                         to="/identity-providers"
                         label="Identity Providers"
                         icon={<Key size={18} />}
+                    />
+                    <NavItem
+                        to="/minting-admin-voting"
+                        label="Minting Admin Voting"
+                        icon={<Vote size={18} />}
+                    />
+                    <NavItem
+                        to="/idp-admin-voting"
+                        label="IDP Admin Voting"
+                        icon={<Vote size={18} />}
+                    />
+                    <NavItem
+                        to="/restriction-admin-voting"
+                        label="Restriction Admin Voting"
+                        icon={<Vote size={18} />}
                     />
                 </ul>
             </nav>
