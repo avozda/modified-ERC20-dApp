@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
 
@@ -145,20 +148,22 @@ export function AddressManagement() {
                 <CardContent>
                     <form onSubmit={handleBlockAddress} className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                className="flex-1 p-2 border rounded-md"
-                                placeholder="0x..."
-                                value={addressToBlock}
-                                onChange={(e) => setAddressToBlock(e.target.value)}
-                            />
-                            <button
+                            <div className="flex-1">
+                                <Label htmlFor="addressToBlock" className="sr-only">Address to Block</Label>
+                                <Input
+                                    id="addressToBlock"
+                                    placeholder="0x..."
+                                    value={addressToBlock}
+                                    onChange={(e) => setAddressToBlock(e.target.value)}
+                                />
+                            </div>
+                            <Button
                                 type="submit"
-                                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                                variant="destructive"
                                 disabled={isPending || isConfirming}
                             >
                                 {isPending || isConfirming ? "Processing..." : "Block Address"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
@@ -173,20 +178,23 @@ export function AddressManagement() {
                 <CardContent>
                     <form onSubmit={handleUnblockAddress} className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                className="flex-1 p-2 border rounded-md"
-                                placeholder="0x..."
-                                value={addressToUnblock}
-                                onChange={(e) => setAddressToUnblock(e.target.value)}
-                            />
-                            <button
+                            <div className="flex-1">
+                                <Label htmlFor="addressToUnblock" className="sr-only">Address to Unblock</Label>
+                                <Input
+                                    id="addressToUnblock"
+                                    placeholder="0x..."
+                                    value={addressToUnblock}
+                                    onChange={(e) => setAddressToUnblock(e.target.value)}
+                                />
+                            </div>
+                            <Button
                                 type="submit"
-                                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                variant="default"
+                                className="bg-blue-500 hover:bg-blue-600"
                                 disabled={isPending || isConfirming}
                             >
                                 {isPending || isConfirming ? "Processing..." : "Unblock Address"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
@@ -201,21 +209,23 @@ export function AddressManagement() {
                 <CardContent>
                     <form onSubmit={handleVerifyAddress} className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <input
-                                id="addressToVerify"
-                                type="text"
-                                className="flex-1 p-2 border rounded-md"
-                                placeholder="0x..."
-                                value={addressToVerify}
-                                onChange={(e) => setAddressToVerify(e.target.value)}
-                            />
-                            <button
+                            <div className="flex-1">
+                                <Label htmlFor="addressToVerify" className="sr-only">Address to Verify</Label>
+                                <Input
+                                    id="addressToVerify"
+                                    placeholder="0x..."
+                                    value={addressToVerify}
+                                    onChange={(e) => setAddressToVerify(e.target.value)}
+                                />
+                            </div>
+                            <Button
                                 type="submit"
-                                className=" bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                                variant="default"
+                                className="bg-green-500 hover:bg-green-600"
                                 disabled={isPending || isConfirming}
                             >
                                 {isPending || isConfirming ? "Processing..." : "Verify Address"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
@@ -230,20 +240,23 @@ export function AddressManagement() {
                 <CardContent>
                     <form onSubmit={handleUnverifyAddress} className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                className="flex-1 p-2 border rounded-md"
-                                placeholder="0x..."
-                                value={addressToUnverify}
-                                onChange={(e) => setAddressToUnverify(e.target.value)}
-                            />
-                            <button
+                            <div className="flex-1">
+                                <Label htmlFor="addressToUnverify" className="sr-only">Address to Unverify</Label>
+                                <Input
+                                    id="addressToUnverify"
+                                    placeholder="0x..."
+                                    value={addressToUnverify}
+                                    onChange={(e) => setAddressToUnverify(e.target.value)}
+                                />
+                            </div>
+                            <Button
                                 type="submit"
-                                className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600"
+                                variant="default"
+                                className="bg-yellow-500 hover:bg-yellow-600"
                                 disabled={isPending || isConfirming}
                             >
                                 {isPending || isConfirming ? "Processing..." : "Unverify Address"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>

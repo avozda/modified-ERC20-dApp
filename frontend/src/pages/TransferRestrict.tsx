@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ContractOptions from "@/lib/contract";
 import { parseUnits } from "viem";
@@ -77,34 +79,26 @@ export function TransferRestrict() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label htmlFor="userAddress" className="text-sm font-medium">
-                                User Address
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="userAddress">User Address</Label>
+                            <Input
                                 id="userAddress"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0x..."
                                 value={userAddress}
                                 onChange={(e) => setUserAddress(e.target.value)}
                             />
-                            <p className="text-xs text-gray-500">Address to set the limit for</p>
+                            <p className="text-xs text-muted-foreground">Address to set the limit for</p>
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="limitAmount" className="text-sm font-medium">
-                                Daily Transfer Limit
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="limitAmount">Daily Transfer Limit</Label>
+                            <Input
                                 id="limitAmount"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0.0"
                                 value={limitAmount}
                                 onChange={(e) => setLimitAmount(e.target.value)}
                             />
-                            <p className="text-xs text-gray-500">Maximum amount the user can transfer per day</p>
+                            <p className="text-xs text-muted-foreground">Maximum amount the user can transfer per day</p>
                         </div>
 
                         <Button

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ContractOptions from "@/lib/contract";
@@ -68,34 +70,26 @@ export function Approval() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label htmlFor="spenderAddress" className="text-sm font-medium">
-                                Spender Address
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="spenderAddress">Spender Address</Label>
+                            <Input
                                 id="spenderAddress"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0x..."
                                 value={spenderAddress}
                                 onChange={(e) => setSpenderAddress(e.target.value)}
                             />
-                            <p className="text-xs text-gray-500">Address that will be allowed to spend your tokens</p>
+                            <p className="text-xs text-muted-foreground">Address that will be allowed to spend your tokens</p>
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="amount" className="text-sm font-medium">
-                                Amount to Approve
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="amount">Amount to Approve</Label>
+                            <Input
                                 id="amount"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0.0"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                             />
-                            <p className="text-xs text-gray-500">How many tokens the spender can use on your behalf</p>
+                            <p className="text-xs text-muted-foreground">How many tokens the spender can use on your behalf</p>
                         </div>
 
                         <Separator />

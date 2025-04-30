@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount } from "wagmi";
 import ContractOptions from "@/lib/contract";
@@ -122,28 +124,20 @@ export function Mint() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label htmlFor="recipientAddress" className="text-sm font-medium">
-                                Recipient Address
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="recipientAddress">Recipient Address</Label>
+                            <Input
                                 id="recipientAddress"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0x..."
                                 value={recipientAddress}
                                 onChange={(e) => setRecipientAddress(e.target.value)}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="amount" className="text-sm font-medium">
-                                Amount
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="amount">Amount</Label>
+                            <Input
                                 id="amount"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0.0"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}

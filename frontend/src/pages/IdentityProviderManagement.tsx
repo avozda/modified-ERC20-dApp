@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
 
@@ -91,20 +94,23 @@ export function IdentityProviderManagement() {
                 <CardContent>
                     <form onSubmit={handleAddProvider} className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                className="flex-1 p-2 border rounded-md"
-                                placeholder="0x..."
-                                value={providerToAdd}
-                                onChange={(e) => setProviderToAdd(e.target.value)}
-                            />
-                            <button
+                            <div className="flex-1">
+                                <Label htmlFor="providerToAdd" className="sr-only">Provider Address</Label>
+                                <Input
+                                    id="providerToAdd"
+                                    placeholder="0x..."
+                                    value={providerToAdd}
+                                    onChange={(e) => setProviderToAdd(e.target.value)}
+                                />
+                            </div>
+                            <Button
                                 type="submit"
-                                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                                variant="default"
+                                className="bg-green-500 hover:bg-green-600"
                                 disabled={isPending || isConfirming}
                             >
                                 {isPending || isConfirming ? "Processing..." : "Add Provider"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
@@ -119,20 +125,22 @@ export function IdentityProviderManagement() {
                 <CardContent>
                     <form onSubmit={handleRemoveProvider} className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                className="flex-1 p-2 border rounded-md"
-                                placeholder="0x..."
-                                value={providerToRemove}
-                                onChange={(e) => setProviderToRemove(e.target.value)}
-                            />
-                            <button
+                            <div className="flex-1">
+                                <Label htmlFor="providerToRemove" className="sr-only">Provider Address</Label>
+                                <Input
+                                    id="providerToRemove"
+                                    placeholder="0x..."
+                                    value={providerToRemove}
+                                    onChange={(e) => setProviderToRemove(e.target.value)}
+                                />
+                            </div>
+                            <Button
                                 type="submit"
-                                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                                variant="destructive"
                                 disabled={isPending || isConfirming}
                             >
                                 {isPending || isConfirming ? "Processing..." : "Remove Provider"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </CardContent>

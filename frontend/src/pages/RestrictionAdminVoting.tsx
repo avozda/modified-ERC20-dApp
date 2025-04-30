@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
@@ -86,20 +88,15 @@ export function RestrictionAdminVoting() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label htmlFor="candidateAddress" className="text-sm font-medium">
-                                Candidate Address
-                            </label>
-                            <input
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="candidateAddress">Candidate Address</Label>
+                            <Input
                                 id="candidateAddress"
-                                type="text"
-                                className="w-full p-2 border rounded-md"
                                 placeholder="0x..."
                                 value={candidateAddress}
                                 onChange={(e) => setCandidateAddress(e.target.value)}
                             />
                         </div>
-
 
                         <Button
                             type="submit"
