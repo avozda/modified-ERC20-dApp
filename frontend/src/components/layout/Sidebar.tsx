@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, LogOut, Coins, Copy, Check, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, LogOut, Coins, Copy, Check, ShieldAlert, Sliders } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { Button } from "../ui/button";
@@ -33,6 +33,7 @@ export function Sidebar() {
             case '/mint':
                 return userData.isMintingAdmin;
             case '/blocked-addresses':
+            case '/transfer-restrict':
                 return userData.isRestrictionAdmin;
             case '/approval':
                 return !userData.isBlocked && userData.isVerified;
@@ -47,6 +48,7 @@ export function Sidebar() {
             case '/mint':
                 return "Requires Minting Admin role";
             case '/blocked-addresses':
+            case '/transfer-restrict':
                 return "Requires Restriction Admin role";
             case '/approval':
                 return "Not available for blocked or unverified addresses";
@@ -121,6 +123,11 @@ export function Sidebar() {
                         to="/blocked-addresses"
                         label="Blocked Addresses"
                         icon={<ShieldAlert size={18} />}
+                    />
+                    <NavItem
+                        to="/transfer-restrict"
+                        label="Transfer Limits"
+                        icon={<Sliders size={18} />}
                     />
                 </ul>
             </nav>

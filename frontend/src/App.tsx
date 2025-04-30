@@ -6,6 +6,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Mint } from "@/pages/Mint";
 import { Approval } from "@/pages/Approval";
 import { BlockedAddresses } from "@/pages/BlockedAddresses";
+import { TransferRestrict } from "@/pages/TransferRestrict";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { UserProvider } from "@/lib/user-context";
@@ -14,10 +15,11 @@ import { useReadContract } from "wagmi";
 import ContractOptions from "@/lib/contract";
 import { PageLoader } from "./components/ui/overlay/PageLoader";
 import { UnknownError } from "./components/ui/overlay/UnknownError";
+import { useEffect } from "react";
 
 function App() {
   const { walletAddress } = useAuth();
-
+  console.log("Wallet Address: ", walletAddress);
   const { data, error, isLoading, refetch } = useReadContract({
     ...ContractOptions,
     functionName: 'getAddressInfo',
@@ -27,6 +29,13 @@ function App() {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }) as any;
+
+  useEffect(() => {
+    if (!walletAddress) {
+      return;
+    }
+    refetch();
+  }, [walletAddress, refetch]);
 
   const userInfo = data ? {
     dailyTransferred: data[0],
@@ -95,6 +104,16 @@ function App() {
                 <ProtectedRoute requiredRole="restrictionAdmin">
                   <DashboardLayout>
                     <BlockedAddresses />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/transfer-restrict"
+              element={
+                <ProtectedRoute requiredRole="restrictionAdmin">
+                  <DashboardLayout>
+                    <TransferRestrict />
                   </DashboardLayout>
                 </ProtectedRoute>
               }

@@ -31,22 +31,37 @@ export const mockIdentityProvider = {
             // Get current timestamp in seconds
             const timestamp = Math.floor(Date.now() / 1000);
 
-            // Create the message in the format expected by the smart contract
-            const message = `User with address ${userAddress} has verified their identity at ${timestamp}`;
+            // Create the message string exactly as it's constructed in the smart contract for hashing
+            const messageString = `User with address ${userAddress} has verified their identity at ${timestamp}`;
 
-            // Sign the message with the IDP wallet
-            const signature = await idpWallet.signMessage(message);
+            const messageHash = ethers.keccak256(
+                ethers.solidityPacked(
+                    ["string", "address", "string", "uint256"],
+                    [
+                        "User with address ",
+                        userAddress,
+                        " has verified their identity at ",
+                        timestamp,
+                    ]
+                )
+            );
 
-            console.log("Identity verification successful!");
+            // Correct way to sign (to match smart contract)
+            const signature = await idpWallet.signMessage(ethers.getBytes(messageHash));
+
+
+            console.log("Identity verification prepared:");
             console.log(`User Address: ${userAddress}`);
             console.log(`Timestamp: ${timestamp}`);
             console.log(`IDP Address: ${idpWallet.address}`);
+            console.log(`Message Hash: ${messageHash}`);
+            console.log(`Signature: ${signature}`);
 
             return {
                 userAddress,
                 timestamp,
                 idpAddress: idpWallet.address,
-                message,
+                message: messageString,
                 signature
             };
         } catch (error) {

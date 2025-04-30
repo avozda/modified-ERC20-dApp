@@ -2,14 +2,48 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount } from "wagmi";
 import ContractOptions from "@/lib/contract";
-import { parseUnits } from "viem";
+import { parseUnits, formatUnits } from "viem";
 import { toast } from "sonner";
 
 export function Mint() {
     const [recipientAddress, setRecipientAddress] = useState("");
     const [amount, setAmount] = useState("");
+    const [maxDailyMint, setMaxDailyMint] = useState<bigint>(BigInt(0));
+    const [dailyMintedAmount, setDailyMintedAmount] = useState<bigint>(BigInt(0));
+    const { address } = useAccount();
+
+    // Read maxDailyMint from contract
+    const { data: maxDailyMintData } = useReadContract({
+        ...ContractOptions,
+        functionName: 'maxDailyMint',
+    });
+
+    // Read dailyMintedAmount for current user
+    const { data: dailyMintedData } = useReadContract({
+        ...ContractOptions,
+        functionName: 'dailyMintedAmount',
+        args: [address],
+    });
+
+    // Calculate remaining mint allowance
+    const remainingMintAllowance = maxDailyMint > dailyMintedAmount
+        ? maxDailyMint - dailyMintedAmount
+        : BigInt(0);
+
+    // Update state when contract data is fetched
+    useEffect(() => {
+        if (maxDailyMintData) {
+            setMaxDailyMint(maxDailyMintData as bigint);
+        }
+    }, [maxDailyMintData]);
+
+    useEffect(() => {
+        if (dailyMintedData) {
+            setDailyMintedAmount(dailyMintedData as bigint);
+        }
+    }, [dailyMintedData]);
 
     const { data: hash, isPending, writeContractAsync } = useWriteContract();
 
@@ -60,6 +94,26 @@ export function Mint() {
     return (
         <div className="space-y-6">
             <h2 className="text-3xl font-bold">Mint Tokens</h2>
+
+            {/* Add daily minting limit card */}
+            <Card className="bg-slate-50">
+                <CardContent className="pt-6">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Daily Mint Limit</p>
+                            <p className="text-2xl font-semibold">{maxDailyMint ? formatUnits(maxDailyMint, 18) : '0'}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Used Today</p>
+                            <p className="text-2xl font-semibold">{dailyMintedAmount ? formatUnits(dailyMintedAmount, 18) : '0'}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Remaining</p>
+                            <p className="text-2xl font-semibold text-green-600">{formatUnits(remainingMintAllowance, 18)}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>

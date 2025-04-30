@@ -19,6 +19,7 @@ export function Dashboard() {
     const { walletAddress } = useAuth();
     const userData = useUserContext();
     const [verifying, setVerifying] = useState(false);
+    const [verificationExpiry, setVerificationExpiry] = useState<string | null>(null);
 
     // Get address status based on user data
     const getAddressStatus = () => {
@@ -46,6 +47,50 @@ export function Dashboard() {
             enabled: !!walletAddress
         }
     });
+
+    // Get verification timestamp from contract
+    const { data: verificationTimestamp } = useReadContract({
+        ...ContractOptions,
+        functionName: 'verifiedAddresses',
+        args: walletAddress ? [walletAddress] : undefined,
+        query: {
+            enabled: !!walletAddress
+        }
+    });
+
+    // Get expiration time from contract
+    const { data: expirationTime } = useReadContract({
+        ...ContractOptions,
+        functionName: 'expirationTime',
+        query: {
+            enabled: !!walletAddress
+        }
+    });
+
+    // Calculate and format verification expiry date whenever the timestamp changes
+    useEffect(() => {
+        if (verificationTimestamp && expirationTime && Number(verificationTimestamp) > 0) {
+            const expiryTimestamp = Number(verificationTimestamp) + Number(expirationTime);
+            const expiryDate = new Date(expiryTimestamp * 1000);
+
+            // Format the date
+            const formattedDate = expiryDate.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Check if already expired
+            const currentTimestamp = Math.floor(Date.now() / 1000);
+            if (expiryTimestamp < currentTimestamp) {
+                setVerificationExpiry("Expired");
+            } else {
+                setVerificationExpiry(formattedDate);
+            }
+        } else {
+            setVerificationExpiry(null);
+        }
+    }, [verificationTimestamp, expirationTime]);
 
     // Contract write hooks for verification
     const { data: hash, writeContract, isPending } = useWriteContract();
@@ -131,14 +176,21 @@ export function Dashboard() {
                                     <p className="text-sm mr-2">Status:</p>
                                     <p className={`text-sm font-medium ${addressStatus.color}`}>{addressStatus.status}</p>
                                 </div>
-                                {!userData.isVerified && !userData.isBlocked && (
+                                {userData.isVerified && verificationExpiry && (
+                                    <div className="mt-1">
+                                        <p className="text-sm text-muted-foreground">
+                                            Verification expires on: <span className={verificationExpiry === "Expired" ? "text-red-500" : "font-medium"}>{verificationExpiry}</span>
+                                        </p>
+                                    </div>
+                                )}
+                                {!userData.isBlocked && (
                                     <Button
                                         className="mt-4"
                                         onClick={handleVerify}
                                         disabled={verifying || isPending}
                                         variant="secondary"
                                     >
-                                        {verifying || isPending ? 'Verifying...' : 'Verify Identity'}
+                                        {verifying || isPending ? 'Verifying...' : (userData.isVerified ? "Reverify identity" : 'Verify Identity')}
                                     </Button>
                                 )}
                             </div>

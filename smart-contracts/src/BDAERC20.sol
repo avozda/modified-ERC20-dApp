@@ -62,6 +62,7 @@ contract BDAERC20 is ERC20, TransferLimiter {
     )
         external
         onlyMintingAdmin
+        onlyVerified(to)
         checkLimitRefresh
         meetsLimit(totalSupply() + amount, maxSupply)
     {
