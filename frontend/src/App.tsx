@@ -1,52 +1,110 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/lib/auth";
+
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Login } from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { Mint } from "@/pages/Mint";
+import { Approval } from "@/pages/Approval";
+import { BlockedAddresses } from "@/pages/BlockedAddresses";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { WagmiProvider } from "wagmi";
-import { config } from "../wagmi.config";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
-
-const queryClient = new QueryClient()
+import { UserProvider } from "@/lib/user-context";
+import { useAuth } from "./lib/auth";
+import { useReadContract } from "wagmi";
+import ContractOptions from "@/lib/contract";
+import { PageLoader } from "./components/ui/overlay/PageLoader";
+import { UnknownError } from "./components/ui/overlay/UnknownError";
 
 function App() {
+  const { walletAddress } = useAuth();
+
+  const { data, error, isLoading, refetch } = useReadContract({
+    ...ContractOptions,
+    functionName: 'getAddressInfo',
+    args: walletAddress ? [walletAddress] : undefined,
+    query: {
+      enabled: !!walletAddress
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+
+  const userInfo = data ? {
+    dailyTransferred: data[0],
+    dailyMinted: data[1],
+    transferLimit: data[2],
+    isVerified: data[3],
+    isBlocked: data[4],
+    isIdentityProvider: data[5],
+    isMintingAdmin: data[6],
+    isRestrictionAdmin: data[7],
+    isIdpAdmin: data[8],
+  } : null;
+
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">
+      <PageLoader />
+    </div>
+  }
+  if (error) {
+    return <div className="flex items-center justify-center h-screen">
+      <UnknownError onRetry={refetch} />
+    </div>
+  }
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Login />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Dashboard />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/mint"
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Mint />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </BrowserRouter>
-          <Toaster />
-        </AuthProvider>
-      </QueryClientProvider >
-    </WagmiProvider>
+    <>
+      <BrowserRouter>
+        <UserProvider data={
+          userInfo
+        }>
+          <Routes>
+            <Route path="/auth" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mint"
+              element={
+                <ProtectedRoute requiredRole="mintingAdmin">
+                  <DashboardLayout>
+                    <Mint />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/approval"
+              element={
+                <ProtectedRoute requiredRole="notBlocked">
+                  <DashboardLayout>
+                    <Approval />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/blocked-addresses"
+              element={
+                <ProtectedRoute requiredRole="restrictionAdmin">
+                  <DashboardLayout>
+                    <BlockedAddresses />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </UserProvider>
+      </BrowserRouter>
+      <Toaster />
+    </>
   );
 }
 

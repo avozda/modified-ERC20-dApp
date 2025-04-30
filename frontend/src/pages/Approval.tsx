@@ -7,8 +7,8 @@ import ContractOptions from "@/lib/contract";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
 
-export function Mint() {
-    const [recipientAddress, setRecipientAddress] = useState("");
+export function Approval() {
+    const [spenderAddress, setSpenderAddress] = useState("");
     const [amount, setAmount] = useState("");
 
     const { data: hash, isPending, writeContractAsync } = useWriteContract();
@@ -19,21 +19,21 @@ export function Mint() {
 
     useEffect(() => {
         if (waitError) {
-            toast.error("Transaction failed to confirm on the blockchain" + waitError.message);
+            toast.error("Transaction failed to confirm on the blockchain: " + waitError.message);
         }
     }, [waitError]);
-    // Update effect to show success toast when transaction is confirmed
+
     useEffect(() => {
         if (isSuccess) {
-            toast.success("Tokens minted successfully!");
+            toast.success("Approval set successfully!");
         }
     }, [isSuccess]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!recipientAddress) {
-            toast.error("Recipient address is required");
+        if (!spenderAddress) {
+            toast.error("Spender address is required");
             return;
         }
 
@@ -47,44 +47,45 @@ export function Mint() {
 
             await writeContractAsync({
                 ...ContractOptions,
-                functionName: 'mint',
-                args: [recipientAddress, parsedAmount],
+                functionName: 'approve',
+                args: [spenderAddress, parsedAmount],
             });
 
         } catch (err: unknown) {
-            console.error("Minting error:", err);
-            toast.error("An error occurred while minting tokens");
+            console.error("Approval error:", err);
+            toast.error("An error occurred while setting approval");
         }
     };
 
     return (
         <div className="space-y-6">
-            <h2 className="text-3xl font-bold">Mint Tokens</h2>
+            <h2 className="text-3xl font-bold">Approve Token Spending</h2>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Mint BDA25 Tokens</CardTitle>
-                    <CardDescription>Enter recipient address and amount to mint tokens</CardDescription>
+                    <CardTitle>Approve BDA25 Tokens</CardTitle>
+                    <CardDescription>Allow another address to spend tokens on your behalf</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <label htmlFor="recipientAddress" className="text-sm font-medium">
-                                Recipient Address
+                            <label htmlFor="spenderAddress" className="text-sm font-medium">
+                                Spender Address
                             </label>
                             <input
-                                id="recipientAddress"
+                                id="spenderAddress"
                                 type="text"
                                 className="w-full p-2 border rounded-md"
                                 placeholder="0x..."
-                                value={recipientAddress}
-                                onChange={(e) => setRecipientAddress(e.target.value)}
+                                value={spenderAddress}
+                                onChange={(e) => setSpenderAddress(e.target.value)}
                             />
+                            <p className="text-xs text-gray-500">Address that will be allowed to spend your tokens</p>
                         </div>
 
                         <div className="space-y-2">
                             <label htmlFor="amount" className="text-sm font-medium">
-                                Amount
+                                Amount to Approve
                             </label>
                             <input
                                 id="amount"
@@ -94,6 +95,7 @@ export function Mint() {
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                             />
+                            <p className="text-xs text-gray-500">How many tokens the spender can use on your behalf</p>
                         </div>
 
                         <Separator />
@@ -104,8 +106,8 @@ export function Mint() {
                             disabled={isPending || isConfirming}
                         >
                             {isPending || isConfirming
-                                ? "Minting..."
-                                : "Mint Tokens"}
+                                ? "Approving..."
+                                : "Approve Tokens"}
                         </Button>
                     </form>
                 </CardContent>

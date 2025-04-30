@@ -11,12 +11,13 @@ contract TransferLimiter is IdentityVerification {
     // Daily transfer limit variables
     mapping(address => uint256) public dailyTransferLimit;
     mapping(address => uint256) public dailyTransferredAmount;
-    mapping(address => uint256) public lastTransferResetTimestamp;
+    address[] public balanceHolders;
 
     // Daily minting limit variables
     uint256 public immutable maxDailyMint;
     mapping(address => uint256) public dailyMintedAmount;
-    mapping(address => uint256) public lastDailyMintResetTimestamp;
+
+    uint256 public lastRefreshTimestamp;
 
     // Events
     event TransferLimitSet(address indexed user, uint256 limit);
@@ -37,6 +38,7 @@ contract TransferLimiter is IdentityVerification {
             _idpAdmins
         )
     {
+        lastRefreshTimestamp = block.timestamp;
         maxDailyMint = _maxDailyMint;
     }
 
@@ -67,32 +69,27 @@ contract TransferLimiter is IdentityVerification {
 
     /**
      * @dev Modifier to reset daily limits if a day has passed
-     * @param lastResetTimestamps Mapping of last reset timestamps
-     * @param dailyAmount Mapping of daily amounts
      */
-    modifier checkLimitRefresh(
-        mapping(address => uint256) storage lastResetTimestamps,
-        mapping(address => uint256) storage dailyAmount
-    ) {
-        if (lastResetTimestamps[msg.sender] + 1 days <= block.timestamp) {
-            dailyAmount[msg.sender] = 0;
-            lastResetTimestamps[msg.sender] = block.timestamp;
+    modifier checkLimitRefresh() {
+        uint256 nextMidnight = (block.timestamp / 1 days + 1) * 1 days;
+        if (lastRefreshTimestamp < nextMidnight) {
+            lastRefreshTimestamp = block.timestamp;
+            for (uint256 i = 0; i < balanceHolders.length; i++) {
+                address user = balanceHolders[i];
+                dailyTransferredAmount[user] = 0;
+                dailyMintedAmount[user] = 0;
+            }
         }
         _;
     }
 
     /**
-     * @dev Updates the daily transferred amount for an address
-     * @param user Address to update
-     * @param amount Amount to add to daily transferred
+     * @dev Updates the daily transferred amount for a specific address
+     * @param from Address transferring tokens
+     * @param amount Amount of tokens transferred
      */
-    function updateDailyTransferred(address user, uint256 amount) internal {
-        if (lastTransferResetTimestamp[user] + 1 days <= block.timestamp) {
-            dailyTransferredAmount[user] = amount;
-            lastTransferResetTimestamp[user] = block.timestamp;
-        } else {
-            dailyTransferredAmount[user] += amount;
-        }
+    function updateDailyTransferred(address from, uint256 amount) internal {
+        dailyTransferredAmount[from] += amount;
     }
 
     /**
@@ -101,11 +98,32 @@ contract TransferLimiter is IdentityVerification {
      * @param amount Amount to add to daily minted
      */
     function updateDailyMinted(address user, uint256 amount) internal {
-        if (lastDailyMintResetTimestamp[user] + 1 days <= block.timestamp) {
-            dailyMintedAmount[user] = amount;
-            lastDailyMintResetTimestamp[user] = block.timestamp;
-        } else {
-            dailyMintedAmount[user] += amount;
+        dailyMintedAmount[user] += amount;
+    }
+
+    /**
+     * @dev Adds a user to the balance holders list
+     * @param user Address to add
+     */
+    function addBalanceHolder(address user) internal {
+        // Check if the user is already a balance holder
+        require(verifiedAddresses[user] != 0, "User is not verified");
+        require(!blockedAddresses[user], "User is blocked");
+        balanceHolders.push(user);
+    }
+
+    /**
+     * @dev Checks if an address is a balance holder
+     * @param user Address to check
+     * @return bool True if the address is a balance holder, false otherwise
+     */
+    function isBalanceHolder(address user) internal view returns (bool) {
+        for (uint256 i = 0; i < balanceHolders.length; i++) {
+            if (balanceHolders[i] == user) {
+                return true;
+            }
         }
+
+        return false;
     }
 }
