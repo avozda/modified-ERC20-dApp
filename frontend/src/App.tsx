@@ -5,8 +5,9 @@ import { Login } from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { Mint } from "@/pages/Mint";
 import { Approval } from "@/pages/Approval";
-import { BlockedAddresses } from "@/pages/BlockedAddresses";
+import { AddressManagement } from "@/pages/AddressManagement";
 import { TransferRestrict } from "@/pages/TransferRestrict";
+import { IdentityProviderManagement } from "@/pages/IdentityProviderManagement";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { UserProvider } from "@/lib/user-context";
@@ -99,11 +100,11 @@ function App() {
               }
             />
             <Route
-              path="/blocked-addresses"
+              path="/address-management"
               element={
                 <ProtectedRoute requiredRole="restrictionAdmin">
                   <DashboardLayout>
-                    <BlockedAddresses />
+                    <AddressManagement />
                   </DashboardLayout>
                 </ProtectedRoute>
               }
@@ -114,6 +115,16 @@ function App() {
                 <ProtectedRoute requiredRole="restrictionAdmin">
                   <DashboardLayout>
                     <TransferRestrict />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/identity-providers"
+              element={
+                <ProtectedRoute requiredRole="idpAdmin">
+                  <DashboardLayout>
+                    <IdentityProviderManagement />
                   </DashboardLayout>
                 </ProtectedRoute>
               }

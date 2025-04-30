@@ -4,7 +4,7 @@ import { useUserContext } from './user-context';
 
 type ProtectedRouteProps = {
     children: React.ReactNode;
-    requiredRole?: 'mintingAdmin' | 'restrictionAdmin' | 'notBlocked';
+    requiredRole?: 'mintingAdmin' | 'restrictionAdmin' | 'notBlocked' | 'idpAdmin';
 };
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -30,6 +30,9 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
             return <Navigate to="/dashboard" replace />;
         }
         if (requiredRole === 'restrictionAdmin' && !userData.isRestrictionAdmin) {
+            return <Navigate to="/dashboard" replace />;
+        }
+        if (requiredRole === 'idpAdmin' && !userData.isIdpAdmin) {
             return <Navigate to="/dashboard" replace />;
         }
         if (requiredRole === 'notBlocked' && (userData.isBlocked || !userData.isVerified)) {

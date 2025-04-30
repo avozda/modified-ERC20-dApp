@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, LogOut, Coins, Copy, Check, ShieldAlert, Sliders } from "lucide-react";
+import { LayoutDashboard, LogOut, Coins, Copy, Check, ShieldAlert, Sliders, Key } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { Button } from "../ui/button";
@@ -32,9 +32,11 @@ export function Sidebar() {
         switch (route) {
             case '/mint':
                 return userData.isMintingAdmin;
-            case '/blocked-addresses':
+            case '/address-management':
             case '/transfer-restrict':
                 return userData.isRestrictionAdmin;
+            case '/identity-providers':
+                return userData.isIdpAdmin;
             case '/approval':
                 return !userData.isBlocked && userData.isVerified;
             default:
@@ -47,9 +49,11 @@ export function Sidebar() {
         switch (route) {
             case '/mint':
                 return "Requires Minting Admin role";
-            case '/blocked-addresses':
+            case '/address-management':
             case '/transfer-restrict':
                 return "Requires Restriction Admin role";
+            case '/identity-providers':
+                return "Requires IDP Admin role";
             case '/approval':
                 return "Not available for blocked or unverified addresses";
             default:
@@ -120,14 +124,19 @@ export function Sidebar() {
                         icon={<Check size={18} />}
                     />
                     <NavItem
-                        to="/blocked-addresses"
-                        label="Blocked Addresses"
+                        to="/address-management"
+                        label="Address Management"
                         icon={<ShieldAlert size={18} />}
                     />
                     <NavItem
                         to="/transfer-restrict"
                         label="Transfer Limits"
                         icon={<Sliders size={18} />}
+                    />
+                    <NavItem
+                        to="/identity-providers"
+                        label="Identity Providers"
+                        icon={<Key size={18} />}
                     />
                 </ul>
             </nav>

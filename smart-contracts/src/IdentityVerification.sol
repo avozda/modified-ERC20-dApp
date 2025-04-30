@@ -146,12 +146,9 @@ contract IdentityVerification is AdminRole {
     /**
      * @dev Manually adds a verified address (admin function)
      * @param user Address to verify
-     * @param timestamp Time when the verification happened
      */
-    function addVerifiedAddress(
-        address user,
-        uint256 timestamp
-    ) external onlyIDPAdmin {
+    function addVerifiedAddress(address user) external onlyIDPAdmin {
+        uint256 timestamp = block.timestamp + expirationTime;
         verifiedAddresses[user] = timestamp;
         emit IdentityVerified(user, timestamp);
     }

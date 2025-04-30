@@ -48,6 +48,30 @@ export function Dashboard() {
         }
     });
 
+    // Get daily transfer limit from contract
+    const { data: transferLimit } = useReadContract({
+        ...ContractOptions,
+        functionName: 'dailyTransferLimit',
+        args: walletAddress ? [walletAddress] : undefined,
+        query: {
+            enabled: !!walletAddress
+        }
+    }) as {
+        data: bigint;
+    };
+
+    // Get daily transferred amount from contract
+    const { data: transferredAmount } = useReadContract({
+        ...ContractOptions,
+        functionName: 'dailyTransferredAmount',
+        args: walletAddress ? [walletAddress] : undefined,
+        query: {
+            enabled: !!walletAddress
+        }
+    }) as {
+        data: bigint;
+    }
+
     // Get verification timestamp from contract
     const { data: verificationTimestamp } = useReadContract({
         ...ContractOptions,
@@ -103,12 +127,24 @@ export function Dashboard() {
         if (waitError) {
             toast.error("Transaction failed to confirm on the blockchain: " + waitError.message);
         }
-    }
-        , [waitError]);
+    }, [waitError]);
 
     // Format the balance with 18 decimals (standard for ERC20)
     const formattedBalance = balance
         ? formatUnits(balance as bigint, 18)
+        : '0';
+
+    // Format the transfer limit and transferred amount
+    const formattedTransferLimit = transferLimit && Number(transferLimit) > 0
+        ? formatUnits(transferLimit as bigint, 18)
+        : '0';
+
+    const formattedTransferredAmount = transferredAmount
+        ? formatUnits(transferredAmount as bigint, 18)
+        : '0';
+
+    const formattedRemainingAmount = transferLimit && Number(transferLimit) > 0
+        ? formatUnits((BigInt(transferLimit) - BigInt(transferredAmount || 0)) as bigint, 18)
         : '0';
 
     // Handle verify identity
@@ -209,9 +245,30 @@ export function Dashboard() {
                                 <p className="text-sm text-muted-foreground">BDA25 Tokens</p>
                                 <p className="text-3xl font-bold">{formattedBalance}</p>
                             </div>
-
                         </div>
+
                         <Separator className="my-4" />
+
+                        {/* Transfer Limit Information */}
+                        {Number(transferLimit) > 0 && (
+                            <div className="mt-4">
+                                <p className="text-sm font-medium">Transfer Limits</p>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Daily Limit</p>
+                                        <p className="text-sm font-medium">{formattedTransferLimit}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Already Spent</p>
+                                        <p className="text-sm font-medium">{formattedTransferredAmount}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-2">
+                                    <p className="text-xs text-muted-foreground">Remaining Today</p>
+                                    <p className="text-sm font-medium">{formattedRemainingAmount}</p>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
