@@ -1,21 +1,31 @@
 import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
+import { config } from "../../wagmi.config";
 
 export function IdentityProviderManagement() {
     const [providerToAdd, setProviderToAdd] = useState("");
     const [providerToRemove, setProviderToRemove] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const { data: hash, isPending, writeContractAsync } = useWriteContract();
 
-    const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
         hash,
     });
+
+    // Show error messages when transaction fails
+    useEffect(() => {
+        if (waitError) {
+            toast.error("Transaction failed: " + waitError.message);
+        }
+    }, [waitError]);
 
     // Show success notification when transaction confirms
     useEffect(() => {
@@ -44,40 +54,62 @@ export function IdentityProviderManagement() {
     // Handle add identity provider form submission
     const handleAddProvider = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!validateAddress(providerToAdd)) {
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'addIdentityProvider',
                 args: [providerToAdd],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error adding identity provider:", err);
-            toast.error("Failed to add identity provider");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to add identity provider");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     // Handle remove identity provider form submission
     const handleRemoveProvider = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!validateAddress(providerToRemove)) {
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'removeIdentityProvider',
                 args: [providerToRemove],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error removing identity provider:", err);
-            toast.error("Failed to remove identity provider");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to remove identity provider");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -107,9 +139,9 @@ export function IdentityProviderManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-green-500 hover:bg-green-600"
-                                disabled={isPending || isConfirming}
+                                disabled={loading || isPending || isConfirming}
                             >
-                                {isPending || isConfirming ? "Processing..." : "Add Provider"}
+                                {loading || isPending || isConfirming ? "Processing..." : "Add Provider"}
                             </Button>
                         </div>
                     </form>
@@ -137,9 +169,9 @@ export function IdentityProviderManagement() {
                             <Button
                                 type="submit"
                                 variant="destructive"
-                                disabled={isPending || isConfirming}
+                                disabled={loading || isPending || isConfirming}
                             >
-                                {isPending || isConfirming ? "Processing..." : "Remove Provider"}
+                                {loading || isPending || isConfirming ? "Processing..." : "Remove Provider"}
                             </Button>
                         </div>
                     </form>

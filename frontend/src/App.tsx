@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useReadContract } from "wagmi";
 
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Login } from "@/pages/Login";
@@ -15,7 +16,6 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { UserProvider } from "@/lib/user-context";
 import { useAuth } from "./lib/auth";
-import { useReadContract } from "wagmi";
 import ContractOptions from "@/lib/contract";
 import { PageLoader } from "./components/ui/overlay/PageLoader";
 import { UnknownError } from "./components/ui/overlay/UnknownError";
@@ -23,7 +23,7 @@ import { useEffect } from "react";
 
 function App() {
   const { walletAddress } = useAuth();
-  console.log("Wallet Address: ", walletAddress);
+
   const { data, error, isLoading, refetch } = useReadContract({
     ...ContractOptions,
     functionName: 'getAddressInfo',
@@ -40,6 +40,8 @@ function App() {
     }
     refetch();
   }, [walletAddress, refetch]);
+
+  // Event watchers have been moved to user-context.tsx
 
   const userInfo = data ? {
     dailyTransferred: data[0],

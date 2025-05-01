@@ -2,7 +2,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatUnits } from "viem";
-import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useReadContract, useWaitForTransactionReceipt, useWriteContract, useWatchContractEvent } from "wagmi";
 import ContractOptions from "@/lib/contract";
 import { PageLoader } from "@/components/ui/overlay/PageLoader";
 import { UnknownError } from "@/components/ui/overlay/UnknownError";
@@ -48,44 +48,54 @@ export function Dashboard() {
         }
     });
 
-    // Get daily transfer limit from contract
-    const { data: transferLimit } = useReadContract({
+    // Watch for TokensMinted events
+    useWatchContractEvent({
         ...ContractOptions,
-        functionName: 'dailyTransferLimit',
-        args: walletAddress ? [walletAddress] : undefined,
-        query: {
-            enabled: !!walletAddress
-        }
-    }) as {
-        data: bigint;
-    };
+        eventName: 'TokensMinted',
+        onLogs(logs) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            logs.forEach((log: any) => {
+                const to = log.args.to;
 
-    // Get daily transferred amount from contract
-    const { data: transferredAmount } = useReadContract({
-        ...ContractOptions,
-        functionName: 'dailyTransferredAmount',
-        args: walletAddress ? [walletAddress] : undefined,
-        query: {
-            enabled: !!walletAddress
-        }
-    }) as {
-        data: bigint;
-    }
+                // If the current wallet is the recipient, update balance
+                if (to === walletAddress) {
+                    refetch();
+                }
+            });
+        },
+    });
 
-    // Get verification timestamp from contract
-    const { data: verificationTimestamp } = useReadContract({
+    // Watch for TokensTransferred events
+    useWatchContractEvent({
         ...ContractOptions,
-        functionName: 'verifiedAddresses',
-        args: walletAddress ? [walletAddress] : undefined,
-        query: {
-            enabled: !!walletAddress
-        }
+        eventName: 'TokensTransferred',
+        onLogs(logs) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            logs.forEach((log: any) => {
+                const from = log.args.from;
+                const to = log.args.to;
+                // If the current wallet is involved in the transfer, update balance
+                if (from === walletAddress || to === walletAddress) {
+                    refetch();
+                }
+            });
+        },
     });
 
     // Get expiration time from contract
     const { data: expirationTime } = useReadContract({
         ...ContractOptions,
         functionName: 'expirationTime',
+        query: {
+            enabled: !!walletAddress
+        }
+    });
+
+    // Get verification timestamp from contract for expiration calculation
+    const { data: verificationTimestamp } = useReadContract({
+        ...ContractOptions,
+        functionName: 'verifiedAddresses',
+        args: walletAddress ? [walletAddress] : undefined,
         query: {
             enabled: !!walletAddress
         }
@@ -134,17 +144,17 @@ export function Dashboard() {
         ? formatUnits(balance as bigint, 18)
         : '0';
 
-    // Format the transfer limit and transferred amount
-    const formattedTransferLimit = transferLimit && Number(transferLimit) > 0
-        ? formatUnits(transferLimit as bigint, 18)
+    // Format the transfer limit and transferred amount from user context
+    const formattedTransferLimit = userData.transferLimit > 0
+        ? formatUnits(userData.transferLimit, 18)
         : '0';
 
-    const formattedTransferredAmount = transferredAmount
-        ? formatUnits(transferredAmount as bigint, 18)
+    const formattedTransferredAmount = userData.dailyTransferred
+        ? formatUnits(userData.dailyTransferred, 18)
         : '0';
 
-    const formattedRemainingAmount = transferLimit && Number(transferLimit) > 0
-        ? formatUnits((BigInt(transferLimit) - BigInt(transferredAmount || 0)) as bigint, 18)
+    const formattedRemainingAmount = userData.transferLimit > 0
+        ? formatUnits((userData.transferLimit - userData.dailyTransferred), 18)
         : '0';
 
     // Handle verify identity
@@ -250,7 +260,7 @@ export function Dashboard() {
                         <Separator className="my-4" />
 
                         {/* Transfer Limit Information */}
-                        {Number(transferLimit) > 0 && (
+                        {userData.transferLimit > 0 && (
                             <div className="mt-4">
                                 <p className="text-sm font-medium">Transfer Limits</p>
                                 <div className="grid grid-cols-2 gap-2 mt-2">

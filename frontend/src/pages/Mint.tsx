@@ -4,69 +4,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount } from "wagmi";
+import { useWriteContract, useReadContract } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { parseUnits, formatUnits } from "viem";
 import { toast } from "sonner";
+import { useUserContext } from "@/lib/user-context";
+import { config } from "../../wagmi.config";
 
 export function Mint() {
     const [recipientAddress, setRecipientAddress] = useState("");
     const [amount, setAmount] = useState("");
     const [maxDailyMint, setMaxDailyMint] = useState<bigint>(BigInt(0));
-    const [dailyMintedAmount, setDailyMintedAmount] = useState<bigint>(BigInt(0));
-    const { address } = useAccount();
+    const userData = useUserContext();
+    const [loading, setLoading] = useState(false);
 
-    // Read maxDailyMint from contract
     const { data: maxDailyMintData } = useReadContract({
         ...ContractOptions,
         functionName: 'maxDailyMint',
     });
 
-    // Read dailyMintedAmount for current user
-    const { data: dailyMintedData } = useReadContract({
-        ...ContractOptions,
-        functionName: 'dailyMintedAmount',
-        args: [address],
-    });
-
-    // Calculate remaining mint allowance
-    const remainingMintAllowance = maxDailyMint > dailyMintedAmount
-        ? maxDailyMint - dailyMintedAmount
+    const remainingMintAllowance = maxDailyMint > userData.dailyMinted
+        ? maxDailyMint - userData.dailyMinted
         : BigInt(0);
 
-    // Update state when contract data is fetched
     useEffect(() => {
         if (maxDailyMintData) {
             setMaxDailyMint(maxDailyMintData as bigint);
         }
     }, [maxDailyMintData]);
 
-    useEffect(() => {
-        if (dailyMintedData) {
-            setDailyMintedAmount(dailyMintedData as bigint);
-        }
-    }, [dailyMintedData]);
-
-    const { data: hash, isPending, writeContractAsync } = useWriteContract();
-
-    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    useEffect(() => {
-        if (waitError) {
-            toast.error("Transaction failed to confirm on the blockchain" + waitError.message);
-        }
-    }, [waitError]);
-    // Update effect to show success toast when transaction is confirmed
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success("Tokens minted successfully!");
-        }
-    }, [isSuccess]);
+    const { writeContractAsync } = useWriteContract();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!recipientAddress) {
             toast.error("Recipient address is required");
@@ -81,23 +53,31 @@ export function Mint() {
         try {
             const parsedAmount = parseUnits(amount, 18);
 
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'mint',
                 args: [recipientAddress, parsedAmount],
             });
 
-        } catch (err: unknown) {
+            await writeContractAsync(request);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Minting error:", err);
-            toast.error("An error occurred while minting tokens");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message);
+            }
+        }
+        finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="space-y-6">
             <h2 className="text-3xl font-bold">Mint Tokens</h2>
-
-            {/* Add daily minting limit card */}
             <Card className="bg-slate-50">
                 <CardContent className="pt-6">
                     <div className="grid grid-cols-3 gap-4 text-center">
@@ -107,7 +87,7 @@ export function Mint() {
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Used Today</p>
-                            <p className="text-2xl font-semibold">{dailyMintedAmount ? formatUnits(dailyMintedAmount, 18) : '0'}</p>
+                            <p className="text-2xl font-semibold">{formatUnits(userData.dailyMinted, 18)}</p>
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Remaining</p>
@@ -149,11 +129,13 @@ export function Mint() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={isPending || isConfirming}
+                            disabled={loading}
+
                         >
-                            {isPending || isConfirming
+                            {loading
                                 ? "Minting..."
                                 : "Mint Tokens"}
+
                         </Button>
                     </form>
                 </CardContent>

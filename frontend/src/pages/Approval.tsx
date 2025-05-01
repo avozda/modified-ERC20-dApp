@@ -5,13 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
+import { config } from "../../wagmi.config";
 
 export function Approval() {
     const [spenderAddress, setSpenderAddress] = useState("");
     const [amount, setAmount] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const { data: hash, isPending, writeContractAsync } = useWriteContract();
 
@@ -28,34 +31,55 @@ export function Approval() {
     useEffect(() => {
         if (isSuccess) {
             toast.success("Approval set successfully!");
+            // Clear form fields after success
+            setSpenderAddress("");
+            setAmount("");
         }
     }, [isSuccess]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!spenderAddress) {
             toast.error("Spender address is required");
+            setLoading(false);
+            return;
+        }
+
+        if (!spenderAddress.startsWith("0x") || spenderAddress.length !== 42) {
+            toast.error("Invalid Ethereum address format");
+            setLoading(false);
             return;
         }
 
         if (!amount) {
             toast.error("Amount is required");
+            setLoading(false);
             return;
         }
 
         try {
             const parsedAmount = parseUnits(amount, 18);
 
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'approve',
                 args: [spenderAddress, parsedAmount],
             });
 
-        } catch (err: unknown) {
+            await writeContractAsync(request);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Approval error:", err);
-            toast.error("An error occurred while setting approval");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "An error occurred while setting approval");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -97,9 +121,9 @@ export function Approval() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={isPending || isConfirming}
+                            disabled={loading || isPending || isConfirming}
                         >
-                            {isPending || isConfirming
+                            {loading || isPending || isConfirming
                                 ? "Approving..."
                                 : "Approve Tokens"}
                         </Button>

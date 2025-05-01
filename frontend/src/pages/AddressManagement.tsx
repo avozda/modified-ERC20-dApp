@@ -1,23 +1,33 @@
 import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
+import { config } from "../../wagmi.config";
 
 export function AddressManagement() {
     const [addressToBlock, setAddressToBlock] = useState("");
     const [addressToUnblock, setAddressToUnblock] = useState("");
     const [addressToVerify, setAddressToVerify] = useState("");
     const [addressToUnverify, setAddressToUnverify] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const { data: hash, isPending, writeContractAsync } = useWriteContract();
 
-    const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
         hash,
     });
+
+    // Show error messages when transaction fails
+    useEffect(() => {
+        if (waitError) {
+            toast.error("Transaction failed: " + waitError.message);
+        }
+    }, [waitError]);
 
     // Show success notification when transaction confirms
     useEffect(() => {
@@ -34,104 +44,152 @@ export function AddressManagement() {
     // Handle block address form submission
     const handleBlockAddress = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!addressToBlock) {
             toast.error("Address is required");
+            setLoading(false);
             return;
         }
 
         if (!addressToBlock.startsWith("0x") || addressToBlock.length !== 42) {
             toast.error("Invalid Ethereum address format");
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'blockAddress',
                 args: [addressToBlock],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error blocking address:", err);
-            toast.error("Failed to block address");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to block address");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     // Handle unblock address form submission
     const handleUnblockAddress = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!addressToUnblock) {
             toast.error("Address is required");
+            setLoading(false);
             return;
         }
 
         if (!addressToUnblock.startsWith("0x") || addressToUnblock.length !== 42) {
             toast.error("Invalid Ethereum address format");
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'unblockAddress',
                 args: [addressToUnblock],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error unblocking address:", err);
-            toast.error("Failed to unblock address");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to unblock address");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     // Handle verify address form submission
     const handleVerifyAddress = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!addressToVerify) {
             toast.error("Address is required");
+            setLoading(false);
             return;
         }
 
         if (!addressToVerify.startsWith("0x") || addressToVerify.length !== 42) {
             toast.error("Invalid Ethereum address format");
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'addVerifiedAddress',
                 args: [addressToVerify],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error verifying address:", err);
-            toast.error("Failed to verify address");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to verify address");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     // Handle unverify address form submission
     const handleUnverifyAddress = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!addressToUnverify) {
             toast.error("Address is required");
+            setLoading(false);
             return;
         }
 
         if (!addressToUnverify.startsWith("0x") || addressToUnverify.length !== 42) {
             toast.error("Invalid Ethereum address format");
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'removeVerifiedAddress',
                 args: [addressToUnverify],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error unverifying address:", err);
-            toast.error("Failed to unverify address");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to unverify address");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -160,9 +218,9 @@ export function AddressManagement() {
                             <Button
                                 type="submit"
                                 variant="destructive"
-                                disabled={isPending || isConfirming}
+                                disabled={loading || isPending || isConfirming}
                             >
-                                {isPending || isConfirming ? "Processing..." : "Block Address"}
+                                {loading || isPending || isConfirming ? "Processing..." : "Block Address"}
                             </Button>
                         </div>
                     </form>
@@ -191,9 +249,9 @@ export function AddressManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-blue-500 hover:bg-blue-600"
-                                disabled={isPending || isConfirming}
+                                disabled={loading || isPending || isConfirming}
                             >
-                                {isPending || isConfirming ? "Processing..." : "Unblock Address"}
+                                {loading || isPending || isConfirming ? "Processing..." : "Unblock Address"}
                             </Button>
                         </div>
                     </form>
@@ -222,9 +280,9 @@ export function AddressManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-green-500 hover:bg-green-600"
-                                disabled={isPending || isConfirming}
+                                disabled={loading || isPending || isConfirming}
                             >
-                                {isPending || isConfirming ? "Processing..." : "Verify Address"}
+                                {loading || isPending || isConfirming ? "Processing..." : "Verify Address"}
                             </Button>
                         </div>
                     </form>
@@ -253,9 +311,9 @@ export function AddressManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-yellow-500 hover:bg-yellow-600"
-                                disabled={isPending || isConfirming}
+                                disabled={loading || isPending || isConfirming}
                             >
-                                {isPending || isConfirming ? "Processing..." : "Unverify Address"}
+                                {loading || isPending || isConfirming ? "Processing..." : "Unverify Address"}
                             </Button>
                         </div>
                     </form>

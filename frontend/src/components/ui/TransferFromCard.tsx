@@ -1,18 +1,20 @@
-// filepath: /Users/adamvozda/Documents/modified-ERC20-dApp/frontend/src/components/ui/TransferFromCard.tsx
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
 import { useUserContext } from "@/lib/user-context";
+import { config } from "../../../wagmi.config";
 
 export function TransferFromCard() {
     const [fromAddress, setFromAddress] = useState("");
     const [recipientAddress, setRecipientAddress] = useState("");
     const [amount, setAmount] = useState("");
+    const [loading, setLoading] = useState(false);
     const userData = useUserContext();
 
     const { data: hash, isPending, writeContractAsync } = useWriteContract();
@@ -23,7 +25,7 @@ export function TransferFromCard() {
 
     useEffect(() => {
         if (waitError) {
-            toast.error("Transaction failed to confirm on the blockchain" + waitError.message);
+            toast.error("Transaction failed to confirm on the blockchain: " + waitError.message);
         }
     }, [waitError]);
 
@@ -31,39 +33,68 @@ export function TransferFromCard() {
     useEffect(() => {
         if (isSuccess) {
             toast.success("Tokens transferred successfully!");
+            // Clear form after successful transfer
+            setFromAddress("");
+            setRecipientAddress("");
+            setAmount("");
         }
     }, [isSuccess]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!fromAddress) {
             toast.error("From address is required");
+            setLoading(false);
+            return;
+        }
+
+        if (!fromAddress.startsWith("0x") || fromAddress.length !== 42) {
+            toast.error("Invalid From address format");
+            setLoading(false);
             return;
         }
 
         if (!recipientAddress) {
             toast.error("Recipient address is required");
+            setLoading(false);
+            return;
+        }
+
+        if (!recipientAddress.startsWith("0x") || recipientAddress.length !== 42) {
+            toast.error("Invalid Recipient address format");
+            setLoading(false);
             return;
         }
 
         if (!amount) {
             toast.error("Amount is required");
+            setLoading(false);
             return;
         }
 
         try {
             const parsedAmount = parseUnits(amount, 18);
 
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'transferFrom',
                 args: [fromAddress, recipientAddress, parsedAmount],
             });
 
-        } catch (err: unknown) {
+            await writeContractAsync(request);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("TransferFrom error:", err);
-            toast.error("An error occurred while transferring tokens");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "An error occurred while transferring tokens");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -126,14 +157,13 @@ export function TransferFromCard() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={isPending || isConfirming}
+                            disabled={loading || isPending || isConfirming}
                         >
-                            {isPending || isConfirming
+                            {loading || isPending || isConfirming
                                 ? "Transferring..."
                                 : "Transfer Tokens"}
                         </Button>
                     )}
-
                 </form>
             </CardContent>
         </Card>

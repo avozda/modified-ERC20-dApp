@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
+import { config } from "../../wagmi.config";
 
 export function MintingAdminVoting() {
     const [candidateAddress, setCandidateAddress] = useState("");
+    const [loading, setLoading] = useState(false);
 
     // Get current minting admin count to show information
     const { data: mintingAdminCount } = useReadContract({
@@ -45,26 +48,38 @@ export function MintingAdminVoting() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (!candidateAddress) {
             toast.error("Candidate address is required");
+            setLoading(false);
             return;
         }
 
         if (!candidateAddress.startsWith("0x") || candidateAddress.length !== 42) {
             toast.error("Invalid Ethereum address format");
+            setLoading(false);
             return;
         }
 
         try {
-            await writeContractAsync({
+            const { request } = await simulateContract(config, {
                 ...ContractOptions,
                 functionName: 'voteMintingAdmin',
                 args: [candidateAddress],
             });
-        } catch (err) {
+
+            await writeContractAsync(request);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error("Error submitting vote:", err);
-            toast.error("Failed to submit vote");
+            if (err.shortMessage) {
+                toast.error(err.shortMessage);
+            } else {
+                toast.error(err.message || "Failed to submit vote");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -100,9 +115,9 @@ export function MintingAdminVoting() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={isPending || isConfirming}
+                            disabled={loading || isPending || isConfirming}
                         >
-                            {isPending || isConfirming
+                            {loading || isPending || isConfirming
                                 ? "Processing..."
                                 : "Submit Vote"}
                         </Button>
