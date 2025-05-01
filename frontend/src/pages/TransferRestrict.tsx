@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useWriteContract } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { parseUnits } from "viem";
@@ -15,28 +15,9 @@ export function TransferRestrict() {
     const [limitAmount, setLimitAmount] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { data: hash, isPending, writeContractAsync } = useWriteContract();
+    const { writeContractAsync } = useWriteContract();
 
-    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
-        hash,
-    });
 
-    // Show error messages when transaction fails
-    useEffect(() => {
-        if (waitError) {
-            toast.error("Transaction failed to confirm on the blockchain: " + waitError.message);
-        }
-    }, [waitError]);
-
-    // Show success notification when transaction confirms
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success("Transfer limit set successfully!");
-            // Clear form fields after success
-            setUserAddress("");
-            setLimitAmount("");
-        }
-    }, [isSuccess]);
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
@@ -45,12 +26,6 @@ export function TransferRestrict() {
 
         if (!userAddress) {
             toast.error("User address is required");
-            setLoading(false);
-            return;
-        }
-
-        if (!userAddress.startsWith("0x") || userAddress.length !== 42) {
-            toast.error("Invalid Ethereum address format");
             setLoading(false);
             return;
         }
@@ -120,9 +95,9 @@ export function TransferRestrict() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={loading || isPending || isConfirming}
+                            disabled={loading}
                         >
-                            {loading || isPending || isConfirming
+                            {loading
                                 ? "Setting limit..."
                                 : "Set Transfer Limit"}
                         </Button>

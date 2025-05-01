@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
+import { useWriteContract, useReadContract } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { toast } from "sonner";
@@ -24,27 +24,7 @@ export function RestrictionAdminVoting() {
 
 
     // Contract write hooks for voting
-    const { data: hash, isPending, writeContractAsync } = useWriteContract();
-
-    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    // Show error messages when transaction fails
-    useEffect(() => {
-        if (waitError) {
-            toast.error("Transaction failed: " + waitError.message);
-        }
-    }, [waitError]);
-
-    // Show success notification when transaction confirms
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success("Vote submitted successfully!");
-            // Clear form fields after success
-            setCandidateAddress("");
-        }
-    }, [isSuccess]);
+    const { writeContractAsync } = useWriteContract();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,12 +32,6 @@ export function RestrictionAdminVoting() {
 
         if (!candidateAddress) {
             toast.error("Candidate address is required");
-            setLoading(false);
-            return;
-        }
-
-        if (!candidateAddress.startsWith("0x") || candidateAddress.length !== 42) {
-            toast.error("Invalid Ethereum address format");
             setLoading(false);
             return;
         }
@@ -115,9 +89,9 @@ export function RestrictionAdminVoting() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={loading || isPending || isConfirming}
+                            disabled={loading}
                         >
-                            {loading || isPending || isConfirming
+                            {loading
                                 ? "Processing..."
                                 : "Submit Vote"}
                         </Button>

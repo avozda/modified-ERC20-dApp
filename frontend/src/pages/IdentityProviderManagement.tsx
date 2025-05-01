@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useState } from "react";
+import { useWriteContract } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,28 +14,7 @@ export function IdentityProviderManagement() {
     const [providerToRemove, setProviderToRemove] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { data: hash, isPending, writeContractAsync } = useWriteContract();
-
-    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    // Show error messages when transaction fails
-    useEffect(() => {
-        if (waitError) {
-            toast.error("Transaction failed: " + waitError.message);
-        }
-    }, [waitError]);
-
-    // Show success notification when transaction confirms
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success("Action completed successfully!");
-            // Clear form fields after success
-            setProviderToAdd("");
-            setProviderToRemove("");
-        }
-    }, [isSuccess]);
+    const { writeContractAsync } = useWriteContract();
 
     const validateAddress = (address: string) => {
         if (!address) {
@@ -117,7 +96,6 @@ export function IdentityProviderManagement() {
         <div className="space-y-6">
             <h2 className="text-3xl font-bold">Identity Provider Management</h2>
 
-            {/* Add Identity Provider Form */}
             <Card>
                 <CardHeader>
                     <CardTitle>Add Identity Provider</CardTitle>
@@ -139,9 +117,9 @@ export function IdentityProviderManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-green-500 hover:bg-green-600"
-                                disabled={loading || isPending || isConfirming}
+                                disabled={loading}
                             >
-                                {loading || isPending || isConfirming ? "Processing..." : "Add Provider"}
+                                {loading ? "Processing..." : "Add Provider"}
                             </Button>
                         </div>
                     </form>
@@ -169,9 +147,9 @@ export function IdentityProviderManagement() {
                             <Button
                                 type="submit"
                                 variant="destructive"
-                                disabled={loading || isPending || isConfirming}
+                                disabled={loading}
                             >
-                                {loading || isPending || isConfirming ? "Processing..." : "Remove Provider"}
+                                {loading ? "Processing..." : "Remove Provider"}
                             </Button>
                         </div>
                     </form>

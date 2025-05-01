@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useState } from "react";
+import { useWriteContract } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,30 +16,8 @@ export function AddressManagement() {
     const [addressToUnverify, setAddressToUnverify] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { data: hash, isPending, writeContractAsync } = useWriteContract();
+    const { writeContractAsync } = useWriteContract();
 
-    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    // Show error messages when transaction fails
-    useEffect(() => {
-        if (waitError) {
-            toast.error("Transaction failed: " + waitError.message);
-        }
-    }, [waitError]);
-
-    // Show success notification when transaction confirms
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success("Action completed successfully!");
-            // Clear form fields after success
-            setAddressToBlock("");
-            setAddressToUnblock("");
-            setAddressToVerify("");
-            setAddressToUnverify("");
-        }
-    }, [isSuccess]);
 
     // Handle block address form submission
     const handleBlockAddress = async (e: React.FormEvent) => {
@@ -48,12 +26,6 @@ export function AddressManagement() {
 
         if (!addressToBlock) {
             toast.error("Address is required");
-            setLoading(false);
-            return;
-        }
-
-        if (!addressToBlock.startsWith("0x") || addressToBlock.length !== 42) {
-            toast.error("Invalid Ethereum address format");
             setLoading(false);
             return;
         }
@@ -196,8 +168,6 @@ export function AddressManagement() {
     return (
         <div className="space-y-6">
             <h2 className="text-3xl font-bold">Address Management</h2>
-
-            {/* Block Address Form */}
             <Card>
                 <CardHeader>
                     <CardTitle>Block Address</CardTitle>
@@ -218,9 +188,9 @@ export function AddressManagement() {
                             <Button
                                 type="submit"
                                 variant="destructive"
-                                disabled={loading || isPending || isConfirming}
+                                disabled={loading}
                             >
-                                {loading || isPending || isConfirming ? "Processing..." : "Block Address"}
+                                {loading ? "Processing..." : "Block Address"}
                             </Button>
                         </div>
                     </form>
@@ -249,9 +219,9 @@ export function AddressManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-blue-500 hover:bg-blue-600"
-                                disabled={loading || isPending || isConfirming}
+                                disabled={loading}
                             >
-                                {loading || isPending || isConfirming ? "Processing..." : "Unblock Address"}
+                                {loading ? "Processing..." : "Unblock Address"}
                             </Button>
                         </div>
                     </form>
@@ -280,9 +250,9 @@ export function AddressManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-green-500 hover:bg-green-600"
-                                disabled={loading || isPending || isConfirming}
+                                disabled={loading}
                             >
-                                {loading || isPending || isConfirming ? "Processing..." : "Verify Address"}
+                                {loading ? "Processing..." : "Verify Address"}
                             </Button>
                         </div>
                     </form>
@@ -311,9 +281,9 @@ export function AddressManagement() {
                                 type="submit"
                                 variant="default"
                                 className="bg-yellow-500 hover:bg-yellow-600"
-                                disabled={loading || isPending || isConfirming}
+                                disabled={loading}
                             >
-                                {loading || isPending || isConfirming ? "Processing..." : "Unverify Address"}
+                                {loading ? "Processing..." : "Unverify Address"}
                             </Button>
                         </div>
                     </form>

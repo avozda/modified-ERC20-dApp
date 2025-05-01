@@ -6,12 +6,10 @@ import { PageLoader } from "@/components/ui/overlay/PageLoader";
 export function Login() {
     const { login, isAuthenticated, isLoading, error } = useAuth();
 
-    // If already authenticated, redirect to dashboard
     if (isAuthenticated) {
         return <Navigate to="/dashboard" replace />;
     }
 
-    // Show full-page loader when loading
     if (isLoading) {
         return <div className="h-screen"> <PageLoader message="Connecting wallet..." /></div>;
     }
