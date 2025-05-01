@@ -7,7 +7,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Use wagmi hooks directly
     const { address, isConnected } = useAccount();
     const { connectAsync, connectors } = useConnect();
     const { disconnect } = useDisconnect();
@@ -18,6 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         disconnect();
     }, [disconnect]);
 
+    // Check token validity
     useEffect(() => {
         const tokenExpiry = localStorage.getItem('tokenExpiry');
 
@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(null);
 
         try {
-            // Connect wallet if not already connected
             let currentAddress = address;
 
             if (!isConnected) {
@@ -58,8 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     throw new Error('Failed to connect wallet');
                 }
             }
-            // Create authentication token
-            const expiryTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+            const expiryTime = Date.now() + (60 * 60 * 1000); // 1 hour
 
             localStorage.setItem('tokenExpiry', expiryTime.toString());
             setIsAuthenticated(true);

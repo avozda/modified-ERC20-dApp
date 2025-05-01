@@ -41,7 +41,6 @@ function App() {
     refetch();
   }, [walletAddress, refetch]);
 
-  // Event watchers have been moved to user-context.tsx
 
   const userInfo = data ? {
     dailyTransferred: data[0],

@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useWriteContract } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import ContractOptions from "@/lib/contract";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
 import { useUserContext } from "@/lib/user-context";
-import { config } from "../../../wagmi.config";
+import { config } from "../../wagmi.config";
 
 export function TransferFromCard() {
     const [fromAddress, setFromAddress] = useState("");
@@ -17,28 +17,7 @@ export function TransferFromCard() {
     const [loading, setLoading] = useState(false);
     const userData = useUserContext();
 
-    const { data: hash, isPending, writeContractAsync } = useWriteContract();
-
-    const { isLoading: isConfirming, isSuccess, error: waitError } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    useEffect(() => {
-        if (waitError) {
-            toast.error("Transaction failed to confirm on the blockchain: " + waitError.message);
-        }
-    }, [waitError]);
-
-    // Update effect to show success toast when transaction is confirmed
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success("Tokens transferred successfully!");
-            // Clear form after successful transfer
-            setFromAddress("");
-            setRecipientAddress("");
-            setAmount("");
-        }
-    }, [isSuccess]);
+    const { writeContractAsync } = useWriteContract();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,20 +29,8 @@ export function TransferFromCard() {
             return;
         }
 
-        if (!fromAddress.startsWith("0x") || fromAddress.length !== 42) {
-            toast.error("Invalid From address format");
-            setLoading(false);
-            return;
-        }
-
         if (!recipientAddress) {
             toast.error("Recipient address is required");
-            setLoading(false);
-            return;
-        }
-
-        if (!recipientAddress.startsWith("0x") || recipientAddress.length !== 42) {
-            toast.error("Invalid Recipient address format");
             setLoading(false);
             return;
         }
@@ -157,9 +124,9 @@ export function TransferFromCard() {
                         <Button
                             type="submit"
                             className="w-full"
-                            disabled={loading || isPending || isConfirming}
+                            disabled={loading}
                         >
-                            {loading || isPending || isConfirming
+                            {loading
                                 ? "Transferring..."
                                 : "Transfer Tokens"}
                         </Button>

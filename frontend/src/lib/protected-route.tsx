@@ -23,7 +23,6 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
         return <Navigate to="/auth" replace />;
     }
 
-    // Role-based access control
     if (requiredRole) {
         // Check permissions based on required role
         if (requiredRole === 'mintingAdmin' && !userData.isMintingAdmin) {

@@ -53,7 +53,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, data = ini
     const [userData, setUserData] = useState<UserContext>(data ?? initialContextValue);
     const { walletAddress } = useAuth();
 
-    // Setup event watchers to update user data when relevant blockchain events occur
     useEffect(() => {
         if (!walletAddress) return;
     }, [walletAddress]);
