@@ -44,7 +44,7 @@ export function TransferCard() {
             });
 
             await writeContractAsync(request);
-
+            toast.success("Transfer transaction sent successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Transfer error:", err);

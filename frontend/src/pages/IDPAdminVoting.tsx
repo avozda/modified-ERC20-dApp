@@ -42,6 +42,7 @@ export function IDPAdminVoting() {
             });
 
             await writeContractAsync(request);
+            toast.success("Vote submitted successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error submitting vote:", err);

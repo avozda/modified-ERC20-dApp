@@ -38,6 +38,7 @@ export function AddressManagement() {
             });
 
             await writeContractAsync(request);
+            toast.success("Address blocked successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error blocking address:", err);
@@ -76,6 +77,7 @@ export function AddressManagement() {
             });
 
             await writeContractAsync(request);
+            toast.success("Address unblocked successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error unblocking address:", err);
@@ -114,6 +116,7 @@ export function AddressManagement() {
             });
 
             await writeContractAsync(request);
+            toast.success("Address verified successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error verifying address:", err);
@@ -152,6 +155,7 @@ export function AddressManagement() {
             });
 
             await writeContractAsync(request);
+            toast.success("Address unverified successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error unverifying address:", err);

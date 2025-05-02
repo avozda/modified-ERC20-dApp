@@ -85,7 +85,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, data = ini
                 if (log.args.user && log.args.user.toLowerCase() === walletAddress?.toLowerCase()) {
                     setUserData(prevData => ({
                         ...prevData,
-                        isVerified: true
+                        isVerified: log.args.timestamp ? true : false
                     }));
                 }
             });
@@ -142,11 +142,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, data = ini
                         const newData = { ...prevData };
 
                         // Update the appropriate admin status based on adminType
-                        if (adminType === 0) { // Assuming 0 for minting admin
+                        if (adminType === "minting") {
                             newData.isMintingAdmin = isAdmin;
-                        } else if (adminType === 1) { // Assuming 1 for restriction admin
+                        } else if (adminType === "restriction") {
                             newData.isRestrictionAdmin = isAdmin;
-                        } else if (adminType === 2) { // Assuming 2 for IDP admin
+                        } else if (adminType === "identityProvider") {
                             newData.isIdpAdmin = isAdmin;
                         }
 

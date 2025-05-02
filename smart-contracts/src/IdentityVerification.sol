@@ -159,5 +159,6 @@ contract IdentityVerification is AdminRole {
      */
     function removeVerifiedAddress(address user) external onlyIDPAdmin {
         verifiedAddresses[user] = 0;
+        emit IdentityVerified(user, 0);
     }
 }

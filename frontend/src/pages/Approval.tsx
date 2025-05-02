@@ -44,7 +44,7 @@ export function Approval() {
             });
 
             await writeContractAsync(request);
-
+            toast.success("Approval transaction sent successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Approval error:", err);

@@ -48,6 +48,7 @@ export function IdentityProviderManagement() {
             });
 
             await writeContractAsync(request);
+            toast.success("Identity provider added successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error adding identity provider:", err);
@@ -79,6 +80,7 @@ export function IdentityProviderManagement() {
             });
 
             await writeContractAsync(request);
+            toast.success("Identity provider removed successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error removing identity provider:", err);

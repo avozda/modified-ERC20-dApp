@@ -89,11 +89,12 @@ export function WalletInfoCard() {
 
             const { request } = await simulateContract(config, {
                 ...ContractOptions,
-                functionName: 'verificationData',
+                functionName: 'verifyIdentity',
                 args: [BigInt(verificationData.timestamp), verificationData.signature],
             });
 
             await writeContractAsync(request);
+            toast.success("Verification successful!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Minting error:", err);

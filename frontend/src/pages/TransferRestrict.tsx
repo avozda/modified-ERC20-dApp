@@ -46,6 +46,7 @@ export function TransferRestrict() {
             });
 
             await writeContractAsync(request);
+            toast.success("Daily transfer limit transaction sent successfully!");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Error setting transfer limit:", err);
