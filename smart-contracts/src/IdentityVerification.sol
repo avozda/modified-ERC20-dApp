@@ -80,12 +80,7 @@ contract IdentityVerification is AdminRole {
     ) external {
         // Construct the message that should have been signed by an IDP
         bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                "User with address ",
-                msg.sender,
-                " has verified their identity at ",
-                timestamp
-            )
+            abi.encodePacked("Verified ", msg.sender, "at ", timestamp)
         );
 
         // Convert hash to Ethereum signed message hash

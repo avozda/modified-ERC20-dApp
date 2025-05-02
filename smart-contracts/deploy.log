@@ -1,0 +1,29 @@
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 31337
+
+Estimated gas price: 1.032152543 gwei
+
+Estimated total gas used for script: 5433112
+
+Estimated amount required: 0.005607800367203816 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /Users/adamvozda/Documents/modified-ERC20-dApp/smart-contracts/broadcast/DeployBDAERC20.s.sol/31337/run-latest.json
+
+Sensitive values saved to: /Users/adamvozda/Documents/modified-ERC20-dApp/smart-contracts/cache/DeployBDAERC20.s.sol/31337/run-latest.json
+

@@ -4,7 +4,12 @@ import { Abi } from "viem";
 
 const tokenABI = BDAERC20.abi as Abi;
 
-const contractAddress: `0x${string}` = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const contractAddress = import.meta.env.CONTRACT_ADDRESS as `0x${string}`;
+
+if (!contractAddress) {
+    throw new Error("CONTRACT_ADDRESS is not set in the environment variables.");
+}
+
 export default {
     address: contractAddress,
     abi: tokenABI,

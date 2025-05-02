@@ -175,12 +175,7 @@ contract IdentityVerificationTest is Test {
 
         // Create message hash that identity provider would sign
         bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                "User with address ",
-                user,
-                " has verified their identity at ",
-                timestamp
-            )
+            abi.encodePacked("Verified ", user, "at ", timestamp)
         );
 
         // Convert hash to Ethereum signed message hash
