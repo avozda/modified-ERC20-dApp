@@ -2,7 +2,7 @@ No files changed, compilation skipped
 Script ran successfully.
 
 == Logs ==
-  0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
+  0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ## Setting up 1 EVM.
 
@@ -10,11 +10,11 @@ Script ran successfully.
 
 Chain 31337
 
-Estimated gas price: 1.032152543 gwei
+Estimated gas price: 2.000000001 gwei
 
 Estimated total gas used for script: 5433112
 
-Estimated amount required: 0.005607800367203816 ETH
+Estimated amount required: 0.010866224005433112 ETH
 
 ==========================
 

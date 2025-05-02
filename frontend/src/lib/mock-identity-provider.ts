@@ -40,14 +40,6 @@ export const mockIdentityProvider = {
             // Correct way to sign (to match smart contract)
             const signature = await idpWallet.signMessage(ethers.getBytes(messageHash));
 
-
-            console.log("Identity verification prepared:");
-            console.log(`User Address: ${userAddress}`);
-            console.log(`Timestamp: ${timestamp}`);
-            console.log(`IDP Address: ${idpWallet.address}`);
-            console.log(`Message Hash: ${messageHash}`);
-            console.log(`Signature: ${signature}`);
-
             return {
                 userAddress,
                 timestamp,

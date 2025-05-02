@@ -21,7 +21,7 @@ deploy:
 	@echo "Deploying smart contract to local network..."
 	cd smart-contracts && \
 		forge script script/DeployBDAERC20.s.sol --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://127.0.0.1:8545 --broadcast | tee ./deploy.log && \
-		grep -A 1 '== Logs ==' ./deploy.log | tail -n 1 | awk '{print "CONTRACT_ADDRESS="$$1}' > ../frontend/.env
+		grep -A 1 '== Logs ==' ./deploy.log | tail -n 1 | awk '{print "VITE_CONTRACT_ADDRESS="$$1}' > ../frontend/.env
 
 # Start frontend development server
 dapp:
