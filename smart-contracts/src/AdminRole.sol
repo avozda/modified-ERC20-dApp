@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: APGL-3.0
 pragma solidity 0.8.29;
 
 /**
@@ -17,7 +17,7 @@ contract AdminRole {
     uint256 public idpAdminCount;
 
     // Admin voting systems
-    mapping(address => mapping(address => bool)) public mintinAdminVotes;
+    mapping(address => mapping(address => bool)) public mintingAdminVotes; // Fixed typo from mintinAdminVotes
     mapping(address => mapping(address => bool)) public restrAdminVotes;
     mapping(address => mapping(address => bool)) public idpAdminVotes;
 
@@ -84,8 +84,9 @@ contract AdminRole {
 
     // Admin voting functions
     function voteMintingAdmin(address user) external onlyMintingAdmin {
-        require(!mintinAdminVotes[user][msg.sender], "Already voted");
-        mintinAdminVotes[msg.sender][user] = true;
+        require(!mintingAdminVotes[user][msg.sender], "Already voted");
+        require(msg.sender != user, "Cannot vote for yourself");
+        mintingAdminVotes[user][msg.sender] = true;
         mintingAdminVotesList[user].push(msg.sender);
 
         if (mintingAdminVotesList[user].length > mintingAdminCount / 2) {
@@ -96,7 +97,7 @@ contract AdminRole {
 
             // Reset votes
             for (uint256 i = 0; i < mintingAdminVotesList[user].length; i++) {
-                mintinAdminVotes[user][mintingAdminVotesList[user][i]] = false;
+                mintingAdminVotes[user][mintingAdminVotesList[user][i]] = false;
             }
             delete mintingAdminVotesList[user];
 
@@ -106,7 +107,8 @@ contract AdminRole {
 
     function voteRestrAdmin(address user) external onlyRestrAdmin {
         require(!restrAdminVotes[user][msg.sender], "Already voted");
-        restrAdminVotes[msg.sender][user] = true;
+        require(msg.sender != user, "Cannot vote for yourself");
+        restrAdminVotes[user][msg.sender] = true;
         restrAdminVotesList[user].push(msg.sender);
 
         if (restrAdminVotesList[user].length > restrAdminCount / 2) {
@@ -127,7 +129,8 @@ contract AdminRole {
 
     function voteIDPAdmin(address user) external onlyIDPAdmin {
         require(!idpAdminVotes[user][msg.sender], "Already voted");
-        idpAdminVotes[msg.sender][user] = true;
+        require(msg.sender != user, "Cannot vote for yourself");
+        idpAdminVotes[user][msg.sender] = true;
         idpAdminVotesList[user].push(msg.sender);
 
         if (idpAdminVotesList[user].length > idpAdminCount / 2) {

@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: APGL-3.0
 pragma solidity 0.8.29;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -62,14 +62,18 @@ contract BDAERC20 is ERC20, TransferLimiter {
     )
         external
         onlyMintingAdmin
-        checkLimitRefresh(lastDailyMintResetTimestamp, dailyMintedAmount)
-        meetsLimit(totalSupply() + amount, maxSupply)
         onlyVerified(to)
+        checkLimitRefresh
+        meetsLimit(totalSupply() + amount, maxSupply)
     {
         require(
             dailyMintedAmount[msg.sender] + amount <= maxDailyMint,
             "Exceeds daily mint limit"
         );
+
+        if (!isBalanceHolder(to)) {
+            addBalanceHolder(to);
+        }
         _mint(to, amount);
         updateDailyMinted(msg.sender, amount);
         emit TokensMinted(to, amount);
@@ -87,13 +91,17 @@ contract BDAERC20 is ERC20, TransferLimiter {
         uint256 amount
     )
         external
-        checkLimitRefresh(lastTransferResetTimestamp, dailyTransferredAmount)
+        checkLimitRefresh
         meetsLimit(
             dailyTransferredAmount[from] + amount,
             dailyTransferLimit[from]
         )
+        onlyVerified(from)
         onlyVerified(to)
     {
+        if (!isBalanceHolder(to)) {
+            addBalanceHolder(to);
+        }
         _transfer(from, to, amount);
         updateDailyTransferred(from, amount);
         emit TokensTransferred(from, to, amount);
@@ -108,28 +116,25 @@ contract BDAERC20 is ERC20, TransferLimiter {
     function transfer(
         address to,
         uint256 amount
-    ) public override onlyVerified(to) returns (bool) {
-        if (dailyTransferLimit[msg.sender] != 0) {
-            if (
-                lastTransferResetTimestamp[msg.sender] + 1 days <=
-                block.timestamp
-            ) {
-                dailyTransferredAmount[msg.sender] = 0;
-                lastTransferResetTimestamp[msg.sender] = block.timestamp;
-            }
-
-            require(
-                dailyTransferredAmount[msg.sender] + amount <=
-                    dailyTransferLimit[msg.sender],
-                "Exceeds daily limit"
-            );
-
-            dailyTransferredAmount[msg.sender] += amount;
+    )
+        public
+        override
+        checkLimitRefresh
+        meetsLimit(
+            dailyTransferredAmount[msg.sender] + amount,
+            dailyTransferLimit[msg.sender]
+        )
+        onlyVerified(msg.sender) // Add check that sender is verified
+        onlyVerified(to)
+        returns (bool)
+    {
+        if (!isBalanceHolder(to)) {
+            addBalanceHolder(to);
         }
-
         bool success = super.transfer(to, amount);
         if (success) {
             emit TokensTransferred(msg.sender, to, amount);
+            dailyTransferredAmount[msg.sender] += amount;
         }
         return success;
     }
@@ -145,26 +150,56 @@ contract BDAERC20 is ERC20, TransferLimiter {
         address from,
         address to,
         uint256 amount
-    ) public override onlyVerified(to) returns (bool) {
-        if (dailyTransferLimit[from] != 0) {
-            if (lastTransferResetTimestamp[from] + 1 days <= block.timestamp) {
-                dailyTransferredAmount[from] = 0;
-                lastTransferResetTimestamp[from] = block.timestamp;
-            }
-
-            require(
-                dailyTransferredAmount[from] + amount <=
-                    dailyTransferLimit[from],
-                "Exceeds daily limit"
-            );
-
-            dailyTransferredAmount[from] += amount;
+    )
+        public
+        override
+        checkLimitRefresh
+        meetsLimit(
+            dailyTransferredAmount[from] + amount,
+            dailyTransferLimit[from]
+        )
+        onlyVerified(from) // Add check that sender is verified
+        onlyVerified(to)
+        returns (bool)
+    {
+        if (!isBalanceHolder(to)) {
+            addBalanceHolder(to);
         }
-
         bool success = super.transferFrom(from, to, amount);
         if (success) {
             emit TokensTransferred(from, to, amount);
+            dailyTransferredAmount[from] += amount;
         }
         return success;
+    }
+
+    function getAddressInfo(
+        address user
+    )
+        external
+        view
+        returns (
+            uint256 dailyTransferred,
+            uint256 dailyMinted,
+            uint256 transferLimit,
+            bool isVerified,
+            bool isBlocked,
+            bool isIdentityProvider,
+            bool isMintingAdmin,
+            bool isRestrictionAdmin,
+            bool isIdpAdmin
+        )
+    {
+        dailyTransferred = dailyTransferredAmount[user];
+        dailyMinted = dailyMintedAmount[user];
+        transferLimit = dailyTransferLimit[user];
+        isVerified =
+            verifiedAddresses[user] != 0 &&
+            verifiedAddresses[user] + expirationTime > block.timestamp;
+        isBlocked = blockedAddresses[user];
+        isIdentityProvider = trustedIdentityProviders[user];
+        isMintingAdmin = mintingAdmins[user];
+        isRestrictionAdmin = restrAdmins[user];
+        isIdpAdmin = idpAdmins[user];
     }
 }

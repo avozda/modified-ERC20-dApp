@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: APGL-3.0
 pragma solidity 0.8.29;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -80,12 +80,7 @@ contract IdentityVerification is AdminRole {
     ) external {
         // Construct the message that should have been signed by an IDP
         bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                "User with address ",
-                msg.sender,
-                " has verified their identity at ",
-                timestamp
-            )
+            abi.encodePacked("Verified ", msg.sender, "at ", timestamp)
         );
 
         // Convert hash to Ethereum signed message hash
@@ -146,14 +141,11 @@ contract IdentityVerification is AdminRole {
     /**
      * @dev Manually adds a verified address (admin function)
      * @param user Address to verify
-     * @param timestamp Time when the verification happened
      */
-    function addVerifiedAddress(
-        address user,
-        uint256 timestamp
-    ) external onlyIDPAdmin {
-        verifiedAddresses[user] = timestamp;
-        emit IdentityVerified(user, timestamp);
+    function addVerifiedAddress(address user) external onlyIDPAdmin {
+        // Use current timestamp for verification, not timestamp + expirationTime
+        verifiedAddresses[user] = block.timestamp;
+        emit IdentityVerified(user, block.timestamp);
     }
 
     /**
@@ -162,5 +154,6 @@ contract IdentityVerification is AdminRole {
      */
     function removeVerifiedAddress(address user) external onlyIDPAdmin {
         verifiedAddresses[user] = 0;
+        emit IdentityVerified(user, 0);
     }
 }
