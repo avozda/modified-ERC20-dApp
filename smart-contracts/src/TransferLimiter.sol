@@ -71,8 +71,7 @@ contract TransferLimiter is IdentityVerification {
      * @dev Modifier to reset daily limits if a day has passed
      */
     modifier checkLimitRefresh() {
-        uint256 nextMidnight = (block.timestamp / 1 days + 1) * 1 days;
-        if (lastRefreshTimestamp < nextMidnight) {
+        if ((block.timestamp / 1 days) > (lastRefreshTimestamp / 1 days)) {
             lastRefreshTimestamp = block.timestamp;
             for (uint256 i = 0; i < balanceHolders.length; i++) {
                 address user = balanceHolders[i];

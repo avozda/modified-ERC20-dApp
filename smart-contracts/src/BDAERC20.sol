@@ -96,6 +96,7 @@ contract BDAERC20 is ERC20, TransferLimiter {
             dailyTransferredAmount[from] + amount,
             dailyTransferLimit[from]
         )
+        onlyVerified(from)
         onlyVerified(to)
     {
         if (!isBalanceHolder(to)) {
@@ -123,6 +124,7 @@ contract BDAERC20 is ERC20, TransferLimiter {
             dailyTransferredAmount[msg.sender] + amount,
             dailyTransferLimit[msg.sender]
         )
+        onlyVerified(msg.sender) // Add check that sender is verified
         onlyVerified(to)
         returns (bool)
     {
@@ -156,9 +158,13 @@ contract BDAERC20 is ERC20, TransferLimiter {
             dailyTransferredAmount[from] + amount,
             dailyTransferLimit[from]
         )
+        onlyVerified(from) // Add check that sender is verified
         onlyVerified(to)
         returns (bool)
     {
+        if (!isBalanceHolder(to)) {
+            addBalanceHolder(to);
+        }
         bool success = super.transferFrom(from, to, amount);
         if (success) {
             emit TokensTransferred(from, to, amount);
