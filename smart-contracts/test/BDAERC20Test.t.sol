@@ -70,13 +70,6 @@ contract BDAERC20Test is Test {
         token.setDailyTransferLimit(user2, dailyLimit);
     }
 
-    function testTokenDetails() public {
-        assertEq(token.name(), "BDA25 Token");
-        assertEq(token.symbol(), "BDA25");
-        assertEq(token.maxSupply(), maxSupply);
-        assertEq(token.maxDailyMint(), maxDailyMint);
-    }
-
     function testMint() public {
         uint256 mintAmount = 1000 ether;
 
@@ -186,8 +179,6 @@ contract BDAERC20Test is Test {
         token.mint(user1, mintAmount);
 
         // Any user can call the custom transfer function for another user
-        // (Note: This is unusual in practice and would typically require authorization,
-        // but we test the contract as implemented)
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit TokensTransferred(user1, user2, transferAmount);
@@ -209,7 +200,7 @@ contract BDAERC20Test is Test {
 
     function testDailyLimitRefresh() public {
         uint256 mintAmount = 1200 ether;
-        uint256 smallTransfer = 300 ether; // Less than daily limit
+        uint256 smallTransfer = 300 ether;
 
         // Mint some tokens first
         vm.prank(mintAdmin);

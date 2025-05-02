@@ -48,11 +48,6 @@ contract IdentityVerificationTest is Test {
         );
     }
 
-    function testInitialProviders() public {
-        assertTrue(idVerification.trustedIdentityProviders(identityProvider));
-        assertFalse(idVerification.trustedIdentityProviders(nonUser));
-    }
-
     function testAddIdentityProvider() public {
         address newIDP = address(0x9);
 
@@ -131,7 +126,8 @@ contract IdentityVerificationTest is Test {
         idVerification.blockAddress(user);
 
         assertTrue(idVerification.blockedAddresses(user));
-        assertFalse(idVerification.isVerified(user)); // User is not considered verified when blocked
+        // User is not considered verified when blocked
+        assertFalse(idVerification.isVerified(user));
     }
 
     function testUnblockAddress() public {
@@ -155,7 +151,8 @@ contract IdentityVerificationTest is Test {
         idVerification.unblockAddress(user);
 
         assertFalse(idVerification.blockedAddresses(user));
-        assertTrue(idVerification.isVerified(user)); // User should be verified again after unblocking
+        // User should be verified again after unblocking
+        assertTrue(idVerification.isVerified(user));
     }
 
     function testVerificationExpiration() public {

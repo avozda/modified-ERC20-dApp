@@ -232,14 +232,12 @@ contract MockTransferLimiter is TransferLimiter {
         dailyTransferredAmount[user] = amount;
     }
 
-    function callCheckLimitRefresh() external checkLimitRefresh {
-        // Function just to call the modifier
-    }
+    // Function just to call the modifier
+    function callCheckLimitRefresh() external checkLimitRefresh {}
 
+    // Function just to test the meetsLimit modifier
     function testMeetsLimitPass(
         uint256 amount,
         uint256 limit
-    ) external meetsLimit(amount, limit) {
-        // Function just to test the meetsLimit modifier
-    }
+    ) external meetsLimit(amount, limit) {}
 }

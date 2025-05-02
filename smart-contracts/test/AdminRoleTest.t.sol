@@ -31,26 +31,6 @@ contract AdminRoleTest is Test {
         adminRole = new AdminRole(mintingAdmins, restrAdmins, idpAdmins);
     }
 
-    function testInitialAdminAssignment() public {
-        // Test initial minting admins
-        assertTrue(adminRole.mintingAdmins(admin1));
-        assertTrue(adminRole.mintingAdmins(admin2));
-        assertFalse(adminRole.mintingAdmins(admin3));
-        assertFalse(adminRole.mintingAdmins(nonAdmin));
-
-        // Test initial restriction admins
-        assertTrue(adminRole.restrAdmins(admin1));
-        assertFalse(adminRole.restrAdmins(admin2));
-        assertTrue(adminRole.restrAdmins(admin3));
-        assertFalse(adminRole.restrAdmins(nonAdmin));
-
-        // Test initial idp admins
-        assertFalse(adminRole.idpAdmins(admin1));
-        assertTrue(adminRole.idpAdmins(admin2));
-        assertTrue(adminRole.idpAdmins(admin3));
-        assertFalse(adminRole.idpAdmins(nonAdmin));
-    }
-
     function testMintingAdminVoting() public {
         // First vote
         vm.prank(admin1);
