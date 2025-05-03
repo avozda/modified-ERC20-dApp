@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: APGL-3.0
 pragma solidity 0.8.29;
 
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./AdminRoles.sol";
 
 /**
@@ -9,8 +8,6 @@ import "./AdminRoles.sol";
  * @dev Contract to manage user identity verification
  */
 contract IdentityVerification is AdminRoles {
-    using ECDSA for bytes32;
-
     mapping(address => bool) public trustedIdentityProviders;
     mapping(address => uint256) public verifiedAddresses;
     mapping(address => bool) public blockedAddresses;
@@ -74,18 +71,30 @@ contract IdentityVerification is AdminRoles {
         uint256 timestamp,
         bytes memory signature
     ) external {
-        // Construct the message that should have been signed by an IDP
         bytes32 messageHash = keccak256(
             abi.encodePacked("Verified ", msg.sender, "at ", timestamp)
         );
 
-        // Convert hash to Ethereum signed message hash
         bytes32 ethSignedMessageHash = keccak256(
             abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
         );
 
-        // Recover signer from the signature
-        address signer = ethSignedMessageHash.recover(signature);
+        // Ensure signature is of correct length
+        require(signature.length == 65, "Invalid signature length");
+
+        // Extract r, s, v values from the signature
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+
+        // ecrecover returns the address that signed the message
+        address signer = ecrecover(ethSignedMessageHash, v, r, s);
 
         require(
             trustedIdentityProviders[signer],
