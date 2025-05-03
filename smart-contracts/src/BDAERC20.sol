@@ -2,13 +2,13 @@
 pragma solidity 0.8.29;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./TransferLimiter.sol";
+import "./TransferLimitation.sol";
 
 /**
  * @title BDAERC20
  * @dev Main ERC20 token contract with enhanced functionality
  */
-contract BDAERC20 is ERC20, TransferLimiter {
+contract BDAERC20 is ERC20, TransferLimitation {
     uint256 public immutable maxSupply;
 
     event TokensMinted(address indexed to, uint256 amount);
@@ -28,7 +28,7 @@ contract BDAERC20 is ERC20, TransferLimiter {
         address[] memory _identityProviders
     )
         ERC20("BDA25 Token", "BDA25")
-        TransferLimiter(
+        TransferLimitation(
             _maxDailyMint,
             _expirationTime,
             _identityProviders,

@@ -142,16 +142,16 @@ npm run dev
 modified-ERC20-dApp/
 ├── frontend/              # React frontend application
 │   ├── src/               # Source code
-│   │   ├── components/    # Reusable UI components
+│   │   ├── components/    # UI components
 │   │   ├── lib/           # Utility functions and context providers
 │   │   ├── pages/         # Application pages
 │   │   └── types/         # TypeScript type definitions
 ├── smart-contracts/       # Solidity smart contracts
 │   ├── src/               # Contract source code
-│   │   ├── AdminRole.sol            # Admin role management
+│   │   ├── AdminRoles.sol            # Admin role management
 │   │   ├── BDAERC20.sol             # Main token contract
 │   │   ├── IdentityVerification.sol # Identity verification
-│   │   └── TransferLimiter.sol      # Transfer restrictions
+│   │   └── TransferLimitation.sol      # Transfer restrictions
 │   ├── script/            # Deployment scripts
 │   └── test/              # Contract tests
 ```
@@ -164,17 +164,17 @@ The project consists of multiple smart contracts with specific responsibilities:
 
 The main token contract that extends OpenZeppelin's ERC20 implementation with additional features:
 
-- Minting with daily limits
+- Minting with daily limits and max supply limit
 - Transfer restrictions based on user verification and limits
 - Integration with administrative roles
 
-### AdminRole.sol
+### AdminRoles.sol
 
 Manages multiple types of administrative roles with democratic voting mechanisms:
 
 - Minting admins: Control token minting
 - Restriction admins: Manage transfer limits
-- Identity Provider admins: Manage identity verification providers, manual verification/unverification/blocation/unblocation of addresses
+- Identity Provider admins: Manage identity verification providers, manual verification/unverification/blockation/unblokcation of addresses
 
 ### IdentityVerification.sol
 
@@ -185,7 +185,7 @@ Handles user identity verification:
 - Manages address blocking/unblocking
 - Implements expiration for verifications
 
-### TransferLimiter.sol
+### TransferLimitation.sol
 
 Implements transfer restrictions:
 
@@ -199,11 +199,12 @@ The frontend application provides an interface to interact with the smart contra
 
 ### Pages
 
+- **Auth**: Page for metamask wallet connection
 - **Dashboard**: Main user interface showing token balance, transfer limit status, verification status and transfer forms
 - **Mint**: Token minting interface, only for mintAdmin
 - **Approval**: Token approval management, only for verified addresses
 - **Address Management**: Interface for blocking/unblocking addresses and manual verification, only for idpAdmins
-- **Transfer Restrict**: Interface for setting transfer limits, only for restrAdmins
+- **Transfer Limiter**: Interface for setting transfer limits, only for restrAdmins
 - **Identity Provider Management**: Interface for adding/removing identity providers, only for idpAdmins
 - **Admin Voting**: Voting interface for each admin role
 
@@ -255,7 +256,7 @@ Disadvantages of this approach:
 
 1. **Gas costs scale with user count**: Reset operation iterates through all balance holders
 2. **Cost burden on first user**: The first user to transact after midnight bears the gas cost of resetting all limits
-3. **Outdated state**: The interface will show outdated information until the next reset
+3. **Outdated state**: The interface could show outdated information until the next reset
 
 Alternative approaches considered:
 
@@ -263,7 +264,7 @@ Alternative approaches considered:
 2. **Individual timestamp tracking per user**: Better gas distribution but more complex and storage-intensive
 3. **Oracle-based reset**: Predictable timing but requires external dependencies
 
-For medium-scale deployments, the current approach offers a good balance between decentralization and efficiency. For larger deployments some optimalizations should be considered.
+For purposes of this project the current approach offers a good balance between decentralization and efficiency. For larger deployments some optimalizations should be considered.
 
 ## Slither analysis
 
@@ -281,7 +282,7 @@ No critical or high severity vulnerabilities were detected.
 
    - `BDAERC20.getAddressInfo()`
    - `IdentityVerification.isVerified()`
-   - `TransferLimiter.addBalanceHolder()`
+   - `TransferLimitation.addBalanceHolder()`
 
    While necessary for our use case, this introduces a minor vulnerability as miners can manipulate timestamps within a small window.
 
@@ -303,7 +304,7 @@ No critical or high severity vulnerabilities were detected.
 
 ### Gas Optimization Issues
 
-1. **Uncached Array Length** - In `TransferLimiter.sol`, the loop condition `i < balanceHolders.length` should use a cached array length instead of repeatedly accessing the storage array's length property, which consumes more gas.
+1. **Uncached Array Length** - In `TransferLimitation.sol`, the loop condition `i < balanceHolders.length` should use a cached array length instead of repeatedly accessing the storage array's length property, which consumes more gas.
 
 2. **Assembly Usage** - The OpenZeppelin `ECDSA.tryRecover()` function uses inline assembly. While not a security issue, it's noted as it may complicate code audits.
 
@@ -324,9 +325,8 @@ EVM functions uset for testing:
 
 2. **Address Impersonation**: `vm.prank()` enables:
 
-   - Testing role-based permissions
-   - Simulating multi-user interactions
    - Verifying access control
+   - Simulating multi-user interactions
 
 ### Tests structure
 
@@ -339,7 +339,7 @@ ContractNameTest.t.sol
 ├── testEdgeCases() - Boundary conditions and limits
 ├── testRevertConditions() - Expected failure scenarios
 ├── testAdminFunctions() - Role-based access control
-└── testIntegration() - Cross-contract interactions
+└── testModifiers() - Modifier behavior validation
 ```
 
 ### Key Test Scenarios

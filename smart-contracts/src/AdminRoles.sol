@@ -2,10 +2,10 @@
 pragma solidity 0.8.29;
 
 /**
- * @title AdminRole
+ * @title AdminRoles
  * @dev Contract to manage different admin roles with voting mechanism
  */
-contract AdminRole {
+contract AdminRoles {
     mapping(address => bool) public mintingAdmins;
     mapping(address => bool) public restrAdmins;
     mapping(address => bool) public idpAdmins;
@@ -49,6 +49,11 @@ contract AdminRole {
         idpAdminCount = _idpAdmins.length;
     }
 
+    /*
+     * @dev Modifier to check if the caller is an admin
+     * Requirements:
+     * - The caller must be a minting admin, restriction admin, or identity provider admin
+     */
     modifier onlyAdmin() {
         require(
             mintingAdmins[msg.sender] ||
@@ -59,16 +64,31 @@ contract AdminRole {
         _;
     }
 
+    /*
+     * @dev Modifier to check if the caller is a minting admin
+     * Requirements:
+     * - The caller must be a minting admin
+     */
     modifier onlyMintingAdmin() {
         require(mintingAdmins[msg.sender], "Not a minting admin");
         _;
     }
 
+    /*
+     * @dev Modifier to check if the caller is a restriction admin
+     * Requirements:
+     * - The caller must be a restriction admin
+     */
     modifier onlyRestrAdmin() {
         require(restrAdmins[msg.sender], "Not a restriction admin");
         _;
     }
 
+    /*
+     * @dev Modifier to check if the caller is an identity provider admin
+     * Requirements:
+     * - The caller must be an identity provider admin
+     */
     modifier onlyIDPAdmin() {
         require(idpAdmins[msg.sender], "Not an identity provider admin");
         _;

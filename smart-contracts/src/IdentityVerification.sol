@@ -2,13 +2,13 @@
 pragma solidity 0.8.29;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./AdminRole.sol";
+import "./AdminRoles.sol";
 
 /**
  * @title IdentityVerification
  * @dev Contract to manage user identity verification
  */
-contract IdentityVerification is AdminRole {
+contract IdentityVerification is AdminRoles {
     using ECDSA for bytes32;
 
     mapping(address => bool) public trustedIdentityProviders;
@@ -28,7 +28,7 @@ contract IdentityVerification is AdminRole {
         address[] memory _mintingAdmins,
         address[] memory _restrAdmins,
         address[] memory _idpAdmins
-    ) AdminRole(_mintingAdmins, _restrAdmins, _idpAdmins) {
+    ) AdminRoles(_mintingAdmins, _restrAdmins, _idpAdmins) {
         expirationTime = _expirationTime;
 
         for (uint256 i = 0; i < _identityProviders.length; i++) {

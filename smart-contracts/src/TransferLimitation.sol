@@ -4,10 +4,10 @@ pragma solidity 0.8.29;
 import "./IdentityVerification.sol";
 
 /**
- * @title TransferLimiter
+ * @title TransferLimitation
  * @dev Contract to manage transfer limits and restrictions
  */
-contract TransferLimiter is IdentityVerification {
+contract TransferLimitation is IdentityVerification {
     mapping(address => uint256) public dailyTransferLimit;
     mapping(address => uint256) public dailyTransferredAmount;
     address[] public balanceHolders;
