@@ -26,7 +26,7 @@ Author: Adam Vožda (xvozdaa00)
 
 ## Project Summary
 
-This project implements an enhanced ERC20 token with identity verification, transfer restrictions, and multi-role administration systems. It consists of a smart contract backend written in Solidity and a frontend application built with React and Wagmi.
+This project implements an enhanced ERC20 token with max supply, identity verification, transfer restrictions, and multi-role administration systems. It consists of a smart contract backend written in Solidity and a frontend application built with React and Wagmi.
 
 ## Setup Instructions
 
