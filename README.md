@@ -166,7 +166,7 @@ The main token contract that extends OpenZeppelin's ERC20 implementation with ad
 
 - Minting with daily limits and max supply limit
 - Transfer restrictions based on user verification and limits
-- Integration with administrative roles
+- Allowance approval
 
 ### AdminRoles.sol
 
