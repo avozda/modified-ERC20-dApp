@@ -200,13 +200,21 @@ The frontend application provides an interface to interact with the smart contra
 ### Pages
 
 - **Auth**: Page for metamask wallet connection
+  ![Auth page](./assets/Auth.png)
 - **Dashboard**: Main user interface showing token balance, transfer limit status, verification status and transfer forms
+  ![Dashboard](./assets/Dashboard.png)
 - **Mint**: Token minting interface, only for mintAdmin
+  ![Mint](./assets/Mint.png)
 - **Approval**: Token approval management, only for verified addresses
+  ![Approval](./assets/Approve.png)
 - **Address Management**: Interface for blocking/unblocking addresses and manual verification, only for idpAdmins
-- **Transfer Limiter**: Interface for setting transfer limits, only for restrAdmins
-- **Identity Provider Management**: Interface for adding/removing identity providers, only for idpAdmins
+  ![Address Management](./assets/AddressManagement.png)
+- **Transfer Limits**: Interface for setting transfer limits, only for restrAdmins
+  ![Transfer Limits](./assets/TransferLimits.png)
+- **Identity Providers**: Interface for adding/removing identity providers, only for idpAdmins
+  ![Identity Provider](./assets/IdentityProviders.png)
 - **Admin Voting**: Voting interface for each admin role
+  ![Voting](./assets/Voting.png)
 
 ## Implementation Details
 

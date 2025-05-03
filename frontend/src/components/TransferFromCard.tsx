@@ -68,7 +68,7 @@ export function TransferFromCard() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>TransferFrom BDA25 Tokens</CardTitle>
+                <CardTitle>Transfer BDA25 Token allowance</CardTitle>
                 <CardDescription>Transfer tokens from an approved address to another address</CardDescription>
             </CardHeader>
             <CardContent>
