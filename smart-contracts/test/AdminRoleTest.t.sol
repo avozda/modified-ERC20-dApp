@@ -2,10 +2,10 @@
 pragma solidity 0.8.29;
 
 import "forge-std/Test.sol";
-import "../src/AdminRole.sol";
+import "../src/AdminRoles.sol";
 
-contract AdminRoleTest is Test {
-    AdminRole adminRole;
+contract AdminRolesTest is Test {
+    AdminRoles adminRoles;
     address admin1 = address(0x1);
     address admin2 = address(0x2);
     address admin3 = address(0x3);
@@ -28,99 +28,99 @@ contract AdminRoleTest is Test {
         idpAdmins[0] = admin2;
         idpAdmins[1] = admin3;
 
-        adminRole = new AdminRole(mintingAdmins, restrAdmins, idpAdmins);
+        adminRoles = new AdminRoles(mintingAdmins, restrAdmins, idpAdmins);
     }
 
     function testMintingAdminVoting() public {
         // First vote
         vm.prank(admin1);
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
 
         // Check that newAdmin is not yet an admin (needs majority)
-        assertFalse(adminRole.mintingAdmins(newAdmin));
+        assertFalse(adminRoles.mintingAdmins(newAdmin));
 
         // Second vote (this should push it over majority)
         vm.prank(admin2);
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
 
         // Now newAdmin should be an admin
-        assertTrue(adminRole.mintingAdmins(newAdmin));
+        assertTrue(adminRoles.mintingAdmins(newAdmin));
 
         // Counter should be updated
-        assertEq(adminRole.mintingAdminCount(), 3);
+        assertEq(adminRoles.mintingAdminCount(), 3);
 
         // Vote again to remove
         vm.prank(admin1);
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
         vm.prank(admin2);
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
 
         // Admin should be removed
-        assertFalse(adminRole.mintingAdmins(newAdmin));
-        assertEq(adminRole.mintingAdminCount(), 2);
+        assertFalse(adminRoles.mintingAdmins(newAdmin));
+        assertEq(adminRoles.mintingAdminCount(), 2);
     }
 
     function testRestrAdminVoting() public {
         // First vote
         vm.prank(admin1);
-        adminRole.voteRestrAdmin(newAdmin);
+        adminRoles.voteRestrAdmin(newAdmin);
 
         // Check that newAdmin is not yet an admin (needs majority)
-        assertFalse(adminRole.restrAdmins(newAdmin));
+        assertFalse(adminRoles.restrAdmins(newAdmin));
 
         // Second vote (this should push it over majority)
         vm.prank(admin3);
-        adminRole.voteRestrAdmin(newAdmin);
+        adminRoles.voteRestrAdmin(newAdmin);
 
         // Now newAdmin should be an admin
-        assertTrue(adminRole.restrAdmins(newAdmin));
+        assertTrue(adminRoles.restrAdmins(newAdmin));
 
         // Counter should be updated
-        assertEq(adminRole.restrAdminCount(), 3);
+        assertEq(adminRoles.restrAdminCount(), 3);
     }
 
     function testIdpAdminVoting() public {
         // First vote
         vm.prank(admin2);
-        adminRole.voteIDPAdmin(newAdmin);
+        adminRoles.voteIDPAdmin(newAdmin);
 
         // Check that newAdmin is not yet an admin (needs majority)
-        assertFalse(adminRole.idpAdmins(newAdmin));
+        assertFalse(adminRoles.idpAdmins(newAdmin));
 
         // Second vote (this should push it over majority)
         vm.prank(admin3);
-        adminRole.voteIDPAdmin(newAdmin);
+        adminRoles.voteIDPAdmin(newAdmin);
 
         // Now newAdmin should be an admin
-        assertTrue(adminRole.idpAdmins(newAdmin));
+        assertTrue(adminRoles.idpAdmins(newAdmin));
 
         // Counter should be updated
-        assertEq(adminRole.idpAdminCount(), 3);
+        assertEq(adminRoles.idpAdminCount(), 3);
     }
 
     function testNonAdminCannotVote() public {
         // Non-admin tries to vote
         vm.prank(nonAdmin);
         vm.expectRevert("Not a minting admin");
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
 
         vm.prank(nonAdmin);
         vm.expectRevert("Not a restriction admin");
-        adminRole.voteRestrAdmin(newAdmin);
+        adminRoles.voteRestrAdmin(newAdmin);
 
         vm.prank(nonAdmin);
         vm.expectRevert("Not an identity provider admin");
-        adminRole.voteIDPAdmin(newAdmin);
+        adminRoles.voteIDPAdmin(newAdmin);
     }
 
     function testDuplicateVotes() public {
         // First vote
         vm.prank(admin1);
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
 
         // Same admin votes again
         vm.prank(admin1);
         vm.expectRevert("Already voted");
-        adminRole.voteMintingAdmin(newAdmin);
+        adminRoles.voteMintingAdmin(newAdmin);
     }
 }

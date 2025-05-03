@@ -21,6 +21,7 @@ contract DeployBDAERC20 is Script {
         address[] memory idpAdmins = new address[](1);
         address[] memory identityProviders = new address[](1);
 
+        //Secret key for this address: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
         mintingAdmins[0] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         restrAdmins[0] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         idpAdmins[0] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;

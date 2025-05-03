@@ -106,7 +106,7 @@ function App() {
             <Route
               path="/address-management"
               element={
-                <ProtectedRoute requiredRole="restrictionAdmin">
+                <ProtectedRoute requiredRole="idpAdmin">
                   <DashboardLayout>
                     <AddressManagement />
                   </DashboardLayout>

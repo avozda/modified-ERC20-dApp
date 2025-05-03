@@ -1,23 +1,18 @@
 //SPDX-License-Identifier: APGL-3.0
 pragma solidity 0.8.29;
 
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./AdminRole.sol";
+import "./AdminRoles.sol";
 
 /**
  * @title IdentityVerification
  * @dev Contract to manage user identity verification
  */
-contract IdentityVerification is AdminRole {
-    using ECDSA for bytes32;
-
-    // Identity verification related variables
+contract IdentityVerification is AdminRoles {
     mapping(address => bool) public trustedIdentityProviders;
-    mapping(address => uint256) public verifiedAddresses; // Maps address to verification timestamp
-    mapping(address => bool) public blockedAddresses; // Maps address to blocked status
+    mapping(address => uint256) public verifiedAddresses;
+    mapping(address => bool) public blockedAddresses;
     uint256 public immutable expirationTime;
 
-    // Events
     event IdentityVerified(address indexed user, uint256 timestamp);
     event IdentityProviderAdded(address indexed provider);
     event IdentityProviderRemoved(address indexed provider);
@@ -30,10 +25,9 @@ contract IdentityVerification is AdminRole {
         address[] memory _mintingAdmins,
         address[] memory _restrAdmins,
         address[] memory _idpAdmins
-    ) AdminRole(_mintingAdmins, _restrAdmins, _idpAdmins) {
+    ) AdminRoles(_mintingAdmins, _restrAdmins, _idpAdmins) {
         expirationTime = _expirationTime;
 
-        // Initialize trusted identity providers
         for (uint256 i = 0; i < _identityProviders.length; i++) {
             trustedIdentityProviders[_identityProviders[i]] = true;
             emit IdentityProviderAdded(_identityProviders[i]);
@@ -46,7 +40,6 @@ contract IdentityVerification is AdminRole {
      * @return bool True if the address is verified, false otherwise
      */
     function isVerified(address user) public view returns (bool) {
-        // Check if the user is verified and if the verification has not expired
         if (verifiedAddresses[user] == 0) {
             return false;
         }
@@ -78,26 +71,36 @@ contract IdentityVerification is AdminRole {
         uint256 timestamp,
         bytes memory signature
     ) external {
-        // Construct the message that should have been signed by an IDP
         bytes32 messageHash = keccak256(
             abi.encodePacked("Verified ", msg.sender, "at ", timestamp)
         );
 
-        // Convert hash to Ethereum signed message hash
         bytes32 ethSignedMessageHash = keccak256(
             abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
         );
 
-        // Recover signer from the signature
-        address signer = ethSignedMessageHash.recover(signature);
+        // Ensure signature is of correct length
+        require(signature.length == 65, "Invalid signature length");
 
-        // Check if signer is a trusted identity provider
+        // Extract r, s, v values from the signature
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+
+        // ecrecover returns the address that signed the message
+        address signer = ecrecover(ethSignedMessageHash, v, r, s);
+
         require(
             trustedIdentityProviders[signer],
             "Invalid identity provider signature"
         );
 
-        // Set verification timestamp
         verifiedAddresses[msg.sender] = timestamp;
         emit IdentityVerified(msg.sender, timestamp);
     }
@@ -124,7 +127,7 @@ contract IdentityVerification is AdminRole {
      * @dev Blocks an address from being considered verified
      * @param user Address to block
      */
-    function blockAddress(address user) external onlyRestrAdmin {
+    function blockAddress(address user) external onlyIDPAdmin {
         blockedAddresses[user] = true;
         emit AddressBlocked(user);
     }
@@ -133,7 +136,7 @@ contract IdentityVerification is AdminRole {
      * @dev Unblocks a previously blocked address
      * @param user Address to unblock
      */
-    function unblockAddress(address user) external onlyRestrAdmin {
+    function unblockAddress(address user) external onlyIDPAdmin {
         blockedAddresses[user] = false;
         emit AddressUnblocked(user);
     }
@@ -143,7 +146,6 @@ contract IdentityVerification is AdminRole {
      * @param user Address to verify
      */
     function addVerifiedAddress(address user) external onlyIDPAdmin {
-        // Use current timestamp for verification, not timestamp + expirationTime
         verifiedAddresses[user] = block.timestamp;
         emit IdentityVerified(user, block.timestamp);
     }

@@ -2,10 +2,10 @@
 pragma solidity 0.8.29;
 
 import "forge-std/Test.sol";
-import "../src/TransferLimiter.sol";
+import "../src/TransferLimitation.sol";
 
-contract TransferLimiterTest is Test {
-    TransferLimiter transferLimiter;
+contract TransferLimitationTest is Test {
+    TransferLimitation transferLimitation;
 
     address idpAdmin = address(0x1);
     address restrAdmin = address(0x2);
@@ -37,7 +37,7 @@ contract TransferLimiterTest is Test {
         identityProviders = new address[](1);
         identityProviders[0] = identityProvider;
 
-        transferLimiter = new TransferLimiter(
+        transferLimitation = new TransferLimitation(
             maxDailyMint,
             expirationTime,
             identityProviders,
@@ -48,33 +48,33 @@ contract TransferLimiterTest is Test {
 
         // Set up verified users
         vm.prank(idpAdmin);
-        transferLimiter.addVerifiedAddress(user);
+        transferLimitation.addVerifiedAddress(user);
 
         vm.prank(idpAdmin);
-        transferLimiter.addVerifiedAddress(recipient);
+        transferLimitation.addVerifiedAddress(recipient);
 
         // Set daily limit for user
         vm.prank(restrAdmin);
-        transferLimiter.setDailyTransferLimit(user, dailyLimit);
+        transferLimitation.setDailyTransferLimit(user, dailyLimit);
     }
 
     function testSetDailyTransferLimit() public {
         // Non-restriction admin cannot set limits
         vm.prank(user);
         vm.expectRevert("Not a restriction admin");
-        transferLimiter.setDailyTransferLimit(user, 200 ether);
+        transferLimitation.setDailyTransferLimit(user, 200 ether);
 
         // Restriction admin can set limits
         vm.prank(restrAdmin);
-        transferLimiter.setDailyTransferLimit(user, 200 ether);
+        transferLimitation.setDailyTransferLimit(user, 200 ether);
 
-        assertEq(transferLimiter.dailyTransferLimit(user), 200 ether);
+        assertEq(transferLimitation.dailyTransferLimit(user), 200 ether);
     }
 
     function testAddBalanceHolder() public {
         // We need to create a helper function to expose the internal addBalanceHolder
         // using a mock contract
-        MockTransferLimiter mockLimiter = new MockTransferLimiter(
+        MockTransferLimitation mockLimitation = new MockTransferLimitation(
             maxDailyMint,
             expirationTime,
             identityProviders,
@@ -85,19 +85,19 @@ contract TransferLimiterTest is Test {
 
         // Non-verified user cannot be added as balance holder
         vm.expectRevert("User is not verified");
-        mockLimiter.publicAddBalanceHolder(nonVerifiedUser);
+        mockLimitation.publicAddBalanceHolder(nonVerifiedUser);
 
         // Verified user can be added as balance holder
         vm.prank(idpAdmin);
-        mockLimiter.addVerifiedAddress(nonVerifiedUser);
-        mockLimiter.publicAddBalanceHolder(nonVerifiedUser);
+        mockLimitation.addVerifiedAddress(nonVerifiedUser);
+        mockLimitation.publicAddBalanceHolder(nonVerifiedUser);
 
         // Check the user is now a balance holder
-        assertTrue(mockLimiter.publicIsBalanceHolder(nonVerifiedUser));
+        assertTrue(mockLimitation.publicIsBalanceHolder(nonVerifiedUser));
     }
 
     function testDailyLimitRefresh() public {
-        MockTransferLimiter mockLimiter = new MockTransferLimiter(
+        MockTransferLimitation mockLimitation = new MockTransferLimitation(
             maxDailyMint,
             expirationTime,
             identityProviders,
@@ -108,25 +108,25 @@ contract TransferLimiterTest is Test {
 
         // Set up user as a balance holder
         vm.prank(idpAdmin);
-        mockLimiter.addVerifiedAddress(user);
-        mockLimiter.publicAddBalanceHolder(user);
+        mockLimitation.addVerifiedAddress(user);
+        mockLimitation.publicAddBalanceHolder(user);
 
         // Set daily transferred amount for user
-        mockLimiter.setDailyTransferred(user, 50 ether);
-        assertEq(mockLimiter.dailyTransferredAmount(user), 50 ether);
+        mockLimitation.setDailyTransferred(user, 50 ether);
+        assertEq(mockLimitation.dailyTransferredAmount(user), 50 ether);
 
         // Warp time to next day
         vm.warp(block.timestamp + 1 days);
 
         // Calling a function with checkLimitRefresh should reset limits
-        mockLimiter.callCheckLimitRefresh();
+        mockLimitation.callCheckLimitRefresh();
 
         // Check that daily transferred is reset
-        assertEq(mockLimiter.dailyTransferredAmount(user), 0);
+        assertEq(mockLimitation.dailyTransferredAmount(user), 0);
     }
 
     function testMeetsLimitModifier() public {
-        MockTransferLimiter mockLimiter = new MockTransferLimiter(
+        MockTransferLimitation mockLimitation = new MockTransferLimitation(
             maxDailyMint,
             expirationTime,
             identityProviders,
@@ -137,21 +137,21 @@ contract TransferLimiterTest is Test {
 
         // Set daily limit for user
         vm.prank(restrAdmin);
-        mockLimiter.setDailyTransferLimit(user, 100 ether);
+        mockLimitation.setDailyTransferLimit(user, 100 ether);
 
         // This should pass as amount is below limit
-        mockLimiter.testMeetsLimitPass(50 ether, 100 ether);
+        mockLimitation.testMeetsLimitPass(50 ether, 100 ether);
 
         // This should revert as amount is above limit
         vm.expectRevert("Exceeds daily limit");
-        mockLimiter.testMeetsLimitPass(150 ether, 100 ether);
+        mockLimitation.testMeetsLimitPass(150 ether, 100 ether);
 
         // This should pass if limit is 0 (unlimited)
-        mockLimiter.testMeetsLimitPass(1000 ether, 0);
+        mockLimitation.testMeetsLimitPass(1000 ether, 0);
     }
 
     function testUpdateDailyTransferred() public {
-        MockTransferLimiter mockLimiter = new MockTransferLimiter(
+        MockTransferLimitation mockLimitation = new MockTransferLimitation(
             maxDailyMint,
             expirationTime,
             identityProviders,
@@ -161,16 +161,16 @@ contract TransferLimiterTest is Test {
         );
 
         // Update daily transferred for user
-        mockLimiter.publicUpdateDailyTransferred(user, 50 ether);
-        assertEq(mockLimiter.dailyTransferredAmount(user), 50 ether);
+        mockLimitation.publicUpdateDailyTransferred(user, 50 ether);
+        assertEq(mockLimitation.dailyTransferredAmount(user), 50 ether);
 
         // Add more to daily transferred
-        mockLimiter.publicUpdateDailyTransferred(user, 25 ether);
-        assertEq(mockLimiter.dailyTransferredAmount(user), 75 ether);
+        mockLimitation.publicUpdateDailyTransferred(user, 25 ether);
+        assertEq(mockLimitation.dailyTransferredAmount(user), 75 ether);
     }
 
     function testUpdateDailyMinted() public {
-        MockTransferLimiter mockLimiter = new MockTransferLimiter(
+        MockTransferLimitation mockLimitation = new MockTransferLimitation(
             maxDailyMint,
             expirationTime,
             identityProviders,
@@ -180,17 +180,17 @@ contract TransferLimiterTest is Test {
         );
 
         // Update daily minted for admin
-        mockLimiter.publicUpdateDailyMinted(mintAdmin, 100 ether);
-        assertEq(mockLimiter.dailyMintedAmount(mintAdmin), 100 ether);
+        mockLimitation.publicUpdateDailyMinted(mintAdmin, 100 ether);
+        assertEq(mockLimitation.dailyMintedAmount(mintAdmin), 100 ether);
 
         // Add more to daily minted
-        mockLimiter.publicUpdateDailyMinted(mintAdmin, 50 ether);
-        assertEq(mockLimiter.dailyMintedAmount(mintAdmin), 150 ether);
+        mockLimitation.publicUpdateDailyMinted(mintAdmin, 50 ether);
+        assertEq(mockLimitation.dailyMintedAmount(mintAdmin), 150 ether);
     }
 }
 
 // Mock contract to expose internal functions for testing
-contract MockTransferLimiter is TransferLimiter {
+contract MockTransferLimitation is TransferLimitation {
     constructor(
         uint256 _maxDailyMint,
         uint256 _expirationTime,
@@ -199,7 +199,7 @@ contract MockTransferLimiter is TransferLimiter {
         address[] memory _restrAdmins,
         address[] memory _idpAdmins
     )
-        TransferLimiter(
+        TransferLimitation(
             _maxDailyMint,
             _expirationTime,
             _identityProviders,
