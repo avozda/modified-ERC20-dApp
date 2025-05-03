@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-// Mock IDP wallet keys - in a real application, these would be managed by a separate service
+// Mock IDP wallet keys
 const MOCK_IDP_KEY = {
     address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
@@ -13,9 +13,7 @@ interface VerificationData {
     signature: string;
 }
 
-/**
- * Mock identity provider service for verifying user addresses in the frontend
- */
+// Mock identity provider service for verifying user addresses in the frontend
 export const mockIdentityProvider = {
     verifyAddress: async (userAddress: string): Promise<VerificationData> => {
         try {
@@ -37,7 +35,6 @@ export const mockIdentityProvider = {
                 )
             );
 
-            // Correct way to sign (to match smart contract)
             const signature = await idpWallet.signMessage(ethers.getBytes(messageHash));
 
             return {

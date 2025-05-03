@@ -8,18 +8,15 @@ import "./IdentityVerification.sol";
  * @dev Contract to manage transfer limits and restrictions
  */
 contract TransferLimiter is IdentityVerification {
-    // Daily transfer limit variables
     mapping(address => uint256) public dailyTransferLimit;
     mapping(address => uint256) public dailyTransferredAmount;
     address[] public balanceHolders;
 
-    // Daily minting limit variables
     uint256 public immutable maxDailyMint;
     mapping(address => uint256) public dailyMintedAmount;
 
     uint256 public lastRefreshTimestamp;
 
-    // Events
     event TransferLimitSet(address indexed user, uint256 limit);
 
     constructor(
@@ -55,11 +52,6 @@ contract TransferLimiter is IdentityVerification {
         emit TransferLimitSet(user, limit);
     }
 
-    /**
-     * @dev Modifier to check if a transfer amount meets the daily limit
-     * @param amount Amount to check
-     * @param limit Limit to check against
-     */
     modifier meetsLimit(uint256 amount, uint256 limit) {
         if (limit != 0) {
             require(amount <= limit, "Exceeds daily limit");

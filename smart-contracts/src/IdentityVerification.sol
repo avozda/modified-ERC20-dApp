@@ -11,13 +11,11 @@ import "./AdminRole.sol";
 contract IdentityVerification is AdminRole {
     using ECDSA for bytes32;
 
-    // Identity verification related variables
     mapping(address => bool) public trustedIdentityProviders;
-    mapping(address => uint256) public verifiedAddresses; // Maps address to verification timestamp
-    mapping(address => bool) public blockedAddresses; // Maps address to blocked status
+    mapping(address => uint256) public verifiedAddresses;
+    mapping(address => bool) public blockedAddresses;
     uint256 public immutable expirationTime;
 
-    // Events
     event IdentityVerified(address indexed user, uint256 timestamp);
     event IdentityProviderAdded(address indexed provider);
     event IdentityProviderRemoved(address indexed provider);
@@ -33,7 +31,6 @@ contract IdentityVerification is AdminRole {
     ) AdminRole(_mintingAdmins, _restrAdmins, _idpAdmins) {
         expirationTime = _expirationTime;
 
-        // Initialize trusted identity providers
         for (uint256 i = 0; i < _identityProviders.length; i++) {
             trustedIdentityProviders[_identityProviders[i]] = true;
             emit IdentityProviderAdded(_identityProviders[i]);
@@ -46,7 +43,6 @@ contract IdentityVerification is AdminRole {
      * @return bool True if the address is verified, false otherwise
      */
     function isVerified(address user) public view returns (bool) {
-        // Check if the user is verified and if the verification has not expired
         if (verifiedAddresses[user] == 0) {
             return false;
         }
@@ -91,13 +87,11 @@ contract IdentityVerification is AdminRole {
         // Recover signer from the signature
         address signer = ethSignedMessageHash.recover(signature);
 
-        // Check if signer is a trusted identity provider
         require(
             trustedIdentityProviders[signer],
             "Invalid identity provider signature"
         );
 
-        // Set verification timestamp
         verifiedAddresses[msg.sender] = timestamp;
         emit IdentityVerified(msg.sender, timestamp);
     }
@@ -124,7 +118,7 @@ contract IdentityVerification is AdminRole {
      * @dev Blocks an address from being considered verified
      * @param user Address to block
      */
-    function blockAddress(address user) external onlyRestrAdmin {
+    function blockAddress(address user) external onlyIDPAdmin {
         blockedAddresses[user] = true;
         emit AddressBlocked(user);
     }
@@ -133,7 +127,7 @@ contract IdentityVerification is AdminRole {
      * @dev Unblocks a previously blocked address
      * @param user Address to unblock
      */
-    function unblockAddress(address user) external onlyRestrAdmin {
+    function unblockAddress(address user) external onlyIDPAdmin {
         blockedAddresses[user] = false;
         emit AddressUnblocked(user);
     }
@@ -143,7 +137,6 @@ contract IdentityVerification is AdminRole {
      * @param user Address to verify
      */
     function addVerifiedAddress(address user) external onlyIDPAdmin {
-        // Use current timestamp for verification, not timestamp + expirationTime
         verifiedAddresses[user] = block.timestamp;
         emit IdentityVerified(user, block.timestamp);
     }

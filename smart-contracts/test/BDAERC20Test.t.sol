@@ -277,7 +277,7 @@ contract BDAERC20Test is Test {
             isIdpAdmin
         ) = token.getAddressInfo(mintAdmin);
 
-        assertEq(dailyMinted, mintAmount); // Minting admin minted tokens
+        assertEq(dailyMinted, mintAmount);
         assertTrue(isMintingAdmin);
     }
 
@@ -290,7 +290,7 @@ contract BDAERC20Test is Test {
         token.mint(user1, mintAmount);
 
         // Block user1
-        vm.prank(restrAdmin);
+        vm.prank(idpAdmin);
         token.blockAddress(user1);
 
         // User1 cannot transfer when blocked
@@ -299,7 +299,7 @@ contract BDAERC20Test is Test {
         token.transfer(user2, transferAmount);
 
         // Unblock user1
-        vm.prank(restrAdmin);
+        vm.prank(idpAdmin);
         token.unblockAddress(user1);
 
         // Now user1 can transfer

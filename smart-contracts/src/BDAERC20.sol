@@ -11,7 +11,6 @@ import "./TransferLimiter.sol";
 contract BDAERC20 is ERC20, TransferLimiter {
     uint256 public immutable maxSupply;
 
-    // Events
     event TokensMinted(address indexed to, uint256 amount);
     event TokensTransferred(
         address indexed from,
@@ -19,16 +18,6 @@ contract BDAERC20 is ERC20, TransferLimiter {
         uint256 amount
     );
 
-    /**
-     * @dev Contract constructor
-     * @param _maxSupply Maximum token supply
-     * @param _maxDailyMint Maximum amount that can be minted per day by each minting admin
-     * @param _expirationTime Time after which a verification expires
-     * @param _mintingAdmins Initial list of minting admins
-     * @param _restrAdmins Initial list of restriction admins
-     * @param _idpAdmins Initial list of identity provider admins
-     * @param _identityProviders Initial list of trusted identity providers
-     */
     constructor(
         uint256 _maxSupply,
         uint256 _maxDailyMint,
@@ -173,6 +162,19 @@ contract BDAERC20 is ERC20, TransferLimiter {
         return success;
     }
 
+    /*
+     * @dev Returns information about a specific address
+     * @param user Address to get information about
+     * @return dailyTransferred Amount of tokens transferred today
+     * @return dailyMinted Amount of tokens minted today
+     * @return transferLimit Daily transfer limit for the address
+     * @return isVerified Whether the address is verified
+     * @return isBlocked Whether the address is blocked
+     * @return isIdentityProvider Whether the address is a trusted identity provider
+     * @return isMintingAdmin Whether the address is a minting admin
+     * @return isRestrictionAdmin Whether the address is a restriction admin
+     * @return isIdpAdmin Whether the address is an IDP admin
+     */
     function getAddressInfo(
         address user
     )

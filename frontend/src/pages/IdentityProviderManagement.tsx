@@ -160,7 +160,6 @@ export function IdentityProviderManagement() {
 
             <div className="mt-4 text-sm text-muted-foreground">
                 <p>Note: Only IDP admins can manage identity providers. Once added, an identity provider can verify user addresses.</p>
-                <p>Security Considerations: Identity provider keys should be kept secure as they control who can hold tokens.</p>
             </div>
         </div>
     );

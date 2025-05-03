@@ -118,11 +118,11 @@ contract IdentityVerificationTest is Test {
 
         // Non-restriction admin cannot block
         vm.prank(nonUser);
-        vm.expectRevert("Not a restriction admin");
+        vm.expectRevert("Not an identity provider admin");
         idVerification.blockAddress(user);
 
         // Restriction admin can block
-        vm.prank(restrAdmin1);
+        vm.prank(idpAdmin1);
         idVerification.blockAddress(user);
 
         assertTrue(idVerification.blockedAddresses(user));
@@ -136,18 +136,18 @@ contract IdentityVerificationTest is Test {
         idVerification.addVerifiedAddress(user);
 
         // Block the user
-        vm.prank(restrAdmin1);
+        vm.prank(idpAdmin1);
         idVerification.blockAddress(user);
 
         assertFalse(idVerification.isVerified(user));
 
         // Non-restriction admin cannot unblock
         vm.prank(nonUser);
-        vm.expectRevert("Not a restriction admin");
+        vm.expectRevert("Not an identity provider admin");
         idVerification.unblockAddress(user);
 
         // Restriction admin can unblock
-        vm.prank(restrAdmin1);
+        vm.prank(idpAdmin1);
         idVerification.unblockAddress(user);
 
         assertFalse(idVerification.blockedAddresses(user));

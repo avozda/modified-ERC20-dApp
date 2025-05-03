@@ -6,18 +6,15 @@ pragma solidity 0.8.29;
  * @dev Contract to manage different admin roles with voting mechanism
  */
 contract AdminRole {
-    // Admin mappings
     mapping(address => bool) public mintingAdmins;
     mapping(address => bool) public restrAdmins;
     mapping(address => bool) public idpAdmins;
 
-    // Counters for each admin type
     uint256 public mintingAdminCount;
     uint256 public restrAdminCount;
     uint256 public idpAdminCount;
 
-    // Admin voting systems
-    mapping(address => mapping(address => bool)) public mintingAdminVotes; // Fixed typo from mintinAdminVotes
+    mapping(address => mapping(address => bool)) public mintingAdminVotes;
     mapping(address => mapping(address => bool)) public restrAdminVotes;
     mapping(address => mapping(address => bool)) public idpAdminVotes;
 
@@ -25,7 +22,6 @@ contract AdminRole {
     mapping(address => address[]) public restrAdminVotesList;
     mapping(address => address[]) public idpAdminVotesList;
 
-    // Events
     event AdminStatusChanged(
         address indexed admin,
         string adminType,
@@ -37,26 +33,22 @@ contract AdminRole {
         address[] memory _restrAdmins,
         address[] memory _idpAdmins
     ) {
-        // Initialize minting admins
         for (uint256 i = 0; i < _mintingAdmins.length; i++) {
             mintingAdmins[_mintingAdmins[i]] = true;
         }
         mintingAdminCount = _mintingAdmins.length;
 
-        // Initialize restriction admins
         for (uint256 i = 0; i < _restrAdmins.length; i++) {
             restrAdmins[_restrAdmins[i]] = true;
         }
         restrAdminCount = _restrAdmins.length;
 
-        // Initialize identity provider admins
         for (uint256 i = 0; i < _idpAdmins.length; i++) {
             idpAdmins[_idpAdmins[i]] = true;
         }
         idpAdminCount = _idpAdmins.length;
     }
 
-    // Admin role modifiers
     modifier onlyAdmin() {
         require(
             mintingAdmins[msg.sender] ||
@@ -82,7 +74,15 @@ contract AdminRole {
         _;
     }
 
-    // Admin voting functions
+    /*
+     * @dev Allows minting admins to vote for a user to become a minting admin
+     * @param user Address of the user to vote for
+     * Emits an {AdminStatusChanged} event when the vote is successful
+     * Requirements:
+     * - The caller must be a minting admin
+     * - The caller must not have already voted for the user
+     * - The caller must not be voting for themselves
+     */
     function voteMintingAdmin(address user) external onlyMintingAdmin {
         require(!mintingAdminVotes[user][msg.sender], "Already voted");
         require(msg.sender != user, "Cannot vote for yourself");
@@ -105,6 +105,15 @@ contract AdminRole {
         }
     }
 
+    /*
+     * @dev Allows restriction admins to vote for a user to become a restriction admin
+     * @param user Address of the user to vote for
+     * Emits an {AdminStatusChanged} event when the vote is successful
+     * Requirements:
+     * - The caller must be a restriction admin
+     * - The caller must not have already voted for the user
+     * - The caller must not be voting for themselves
+     */
     function voteRestrAdmin(address user) external onlyRestrAdmin {
         require(!restrAdminVotes[user][msg.sender], "Already voted");
         require(msg.sender != user, "Cannot vote for yourself");
@@ -127,6 +136,15 @@ contract AdminRole {
         }
     }
 
+    /*
+     * @dev Allows identity provider admins to vote for a user to become an identity provider admin
+     * @param user Address of the user to vote for
+     * Emits an {AdminStatusChanged} event when the vote is successful
+     * Requirements:
+     * - The caller must be an identity provider admin
+     * - The caller must not have already voted for the user
+     * - The caller must not be voting for themselves
+     */
     function voteIDPAdmin(address user) external onlyIDPAdmin {
         require(!idpAdminVotes[user][msg.sender], "Already voted");
         require(msg.sender != user, "Cannot vote for yourself");
