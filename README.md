@@ -214,6 +214,8 @@ The frontend application provides an interface to interact with the smart contra
 
 Each address starts as unverified and can be verified by an identity provider. The verification process involves generating a signature using the user's private key and submitting it to the contract. The contract then verifies the signature using the public key of the identity provider. The contract saves timestap of verification, if this timestamp + `expirationTime` (passed in constructor) is less than current timestamp, the address is considered as unverified. Verified address can be reverified before expiration to extend the expiration period. Address can be manually verified/unverified by idp admins. Address can be blocked by idpAdmin which causes the address to behave as unverified and has to be unblocked by idp admin before being able to reach the verified status again.
 
+![Address state FSM](./assets/addressStateFSM.png)
+
 For the purposes of this project identity provider is mocked in `./frontend/src/lib/mock-identity-provider`
 
 ### Adming Voting
