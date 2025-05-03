@@ -69,7 +69,7 @@ contract BDAERC20 is ERC20, TransferLimitation {
     }
 
     /**
-     * @dev Custom transfer function with limits and verification checks
+     * @dev Transfer fucntion for spendign allowance
      * @param from Address sending tokens
      * @param to Address receiving tokens
      * @param amount Amount of tokens to transfer
@@ -91,9 +91,24 @@ contract BDAERC20 is ERC20, TransferLimitation {
         if (!isBalanceHolder(to)) {
             addBalanceHolder(to);
         }
-        _transfer(from, to, amount);
-        updateDailyTransferred(from, amount);
+        transferFrom(from, to, amount);
+        dailyTransferredAmount[from] += amount;
         emit TokensTransferred(from, to, amount);
+    }
+
+    /**
+     * @dev Approves a spender to spend tokens on behalf of the caller
+     * @param spender Address to approve
+     * @param value Amount of tokens to approve
+     * @return success Whether the approval was successful
+     */
+    function approve(
+        address spender,
+        uint256 value
+    ) public override onlyVerified(spender) returns (bool) {
+        address owner = msg.sender;
+        _approve(owner, spender, value);
+        return true;
     }
 
     /**
@@ -124,40 +139,6 @@ contract BDAERC20 is ERC20, TransferLimitation {
         if (success) {
             emit TokensTransferred(msg.sender, to, amount);
             dailyTransferredAmount[msg.sender] += amount;
-        }
-        return success;
-    }
-
-    /**
-     * @dev Overrides the standard ERC20 transferFrom to enforce verification checks
-     * @param from Address to transfer tokens from
-     * @param to Address to transfer tokens to
-     * @param amount Amount of tokens to transfer
-     * @return success Whether the transfer was successful
-     */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    )
-        public
-        override
-        checkLimitRefresh
-        meetsLimit(
-            dailyTransferredAmount[from] + amount,
-            dailyTransferLimit[from]
-        )
-        onlyVerified(from) // Add check that sender is verified
-        onlyVerified(to)
-        returns (bool)
-    {
-        if (!isBalanceHolder(to)) {
-            addBalanceHolder(to);
-        }
-        bool success = super.transferFrom(from, to, amount);
-        if (success) {
-            emit TokensTransferred(from, to, amount);
-            dailyTransferredAmount[from] += amount;
         }
         return success;
     }

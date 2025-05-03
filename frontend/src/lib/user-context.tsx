@@ -126,6 +126,25 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, data = ini
         },
     });
 
+    // Watch for TokensMinted events
+    useWatchContractEvent({
+        ...ContractOptions,
+        eventName: 'TokensMinted',
+        onLogs(logs) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            logs.forEach((log: any) => {
+                const to = log.args.to;
+                // If the current wallet is the recipient, update minted amount
+                if (to === walletAddress) {
+                    setUserData(prevData => ({
+                        ...prevData,
+                        dailyMinted: prevData.dailyMinted + log.args.amount
+                    }));
+                }
+            });
+        },
+    });
+
     // Listen for AdminStatusChanged events
     useWatchContractEvent({
         ...ContractOptions,

@@ -132,67 +132,56 @@ contract BDAERC20Test is Test {
         token.transfer(user2, dailyLimit + 1);
     }
 
-    function testTransferFrom() public {
+    function testSpendAllowanceTransfer() public {
         uint256 mintAmount = 1000 ether;
         uint256 transferAmount = 500 ether;
-        uint256 allowanceAmount = 700 ether;
 
         // Mint some tokens first
         vm.prank(mintAdmin);
         token.mint(user1, mintAmount);
 
-        // User1 approves User2 to spend tokens
-        vm.prank(user1);
-        token.approve(user2, allowanceAmount);
-
-        // User2 can transfer from User1 to themselves
+        // User2 cannot transfer from User1 without approval
         vm.prank(user2);
-        vm.expectEmit(true, true, false, true);
-        emit TokensTransferred(user1, user2, transferAmount);
-        bool success = token.transferFrom(user1, user2, transferAmount);
-
-        assertTrue(success);
-        assertEq(token.balanceOf(user1), mintAmount - transferAmount);
-        assertEq(token.balanceOf(user2), transferAmount);
-        assertEq(
-            token.allowance(user1, user2),
-            allowanceAmount - transferAmount
+        // Expect revert because user2 is not allwowed to transfer user1's tokens
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientAllowance.selector,
+                user2,
+                0,
+                transferAmount
+            )
         );
+        token.transfer(user1, user2, transferAmount);
 
-        // Cannot transfer to non-verified user
-        vm.prank(user2);
-        vm.expectRevert("Identity not verified");
-        token.transferFrom(user1, nonVerifiedUser, transferAmount);
+        // User1 approves for the transfer to work
+        vm.prank(user1);
+        token.approve(user2, transferAmount);
 
-        // Cannot exceed daily transfer limit
-        vm.prank(user2);
-        vm.expectRevert("Exceeds daily limit");
-        token.transferFrom(user1, user2, dailyLimit + 1);
-    }
-
-    function testCustomTransfer() public {
-        uint256 mintAmount = 1000 ether;
-        uint256 transferAmount = 500 ether;
-
-        // Mint some tokens first
-        vm.prank(mintAdmin);
-        token.mint(user1, mintAmount);
-
-        // Any user can call the custom transfer function for another user
+        // Now user2 can call the transfer function for user1 tokens to be transferred to user2
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit TokensTransferred(user1, user2, transferAmount);
         token.transfer(user1, user2, transferAmount);
 
+        // Verify balances changed correctly
         assertEq(token.balanceOf(user1), mintAmount - transferAmount);
         assertEq(token.balanceOf(user2), transferAmount);
 
+        // Verify allowance was consumed
+        assertEq(token.allowance(user1, user2), 0);
+
         // Cannot transfer to non-verified user
+        vm.prank(user1);
+        token.approve(user2, transferAmount);
+
         vm.prank(user2);
         vm.expectRevert("Identity not verified");
         token.transfer(user1, nonVerifiedUser, transferAmount);
 
         // Cannot exceed daily transfer limit
+        vm.prank(user1);
+        token.approve(user2, dailyLimit + 1);
+
         vm.prank(user2);
         vm.expectRevert("Exceeds daily limit");
         token.transfer(user1, user2, dailyLimit + 1);

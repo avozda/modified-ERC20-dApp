@@ -46,7 +46,7 @@ export function TransferFromCard() {
 
             const { request } = await simulateContract(config, {
                 ...ContractOptions,
-                functionName: 'transferFrom',
+                functionName: 'transfer',
                 args: [fromAddress, recipientAddress, parsedAmount],
             });
 
