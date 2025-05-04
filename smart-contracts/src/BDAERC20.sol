@@ -6,7 +6,7 @@ import "./TransferLimitation.sol";
 
 /**
  * @title BDAERC20
- * @dev Main ERC20 token contract with enhanced functionality
+ * @dev Main ERC20 token contract with modified functionality
  */
 contract BDAERC20 is ERC20, TransferLimitation {
     uint256 public immutable maxSupply;
