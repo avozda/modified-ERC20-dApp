@@ -200,8 +200,6 @@ export function AddressManagement() {
                     </form>
                 </CardContent>
             </Card>
-
-            {/* Unblock Address Form */}
             <Card>
                 <CardHeader>
                     <CardTitle>Unblock Address</CardTitle>
@@ -231,8 +229,6 @@ export function AddressManagement() {
                     </form>
                 </CardContent>
             </Card>
-
-            {/* Verify Address Form */}
             <Card>
                 <CardHeader>
                     <CardTitle>Manually Verify Address</CardTitle>
@@ -262,8 +258,6 @@ export function AddressManagement() {
                     </form>
                 </CardContent>
             </Card>
-
-            {/* Unverify Address Form */}
             <Card>
                 <CardHeader>
                     <CardTitle>Unverify Address</CardTitle>
