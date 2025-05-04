@@ -220,7 +220,7 @@ The frontend application provides an interface to interact with the smart contra
 
 ### Identity Verification and expiration
 
-Each address starts as unverified and can be verified by an identity provider. The verification process involves generating a signature using the user's private key and submitting it to the contract. The contract then verifies the signature using the public key of the identity provider. The contract saves timestap of verification, if this timestamp + `expirationTime` (passed in constructor) is less than current timestamp, the address is considered as unverified. Verified address can be reverified before expiration to extend the expiration period. Address can be manually verified/unverified by idp admins. Address can be blocked by idpAdmin which causes the address to behave as unverified and has to be unblocked by idp admin before being able to reach the verified status again.
+Each address starts as unverified and can be verified by an identity provider. The verification process involves generating a signature using the identity provider private key and submitting it to the contract. The contract then verifies the signature using the public key of the identity provider. The contract saves timestap of verification, if this timestamp + `expirationTime` (passed in constructor) is less than current timestamp, the address is considered as unverified. Verified address can be reverified before expiration to extend the expiration period. Address can be manually verified/unverified by idp admins. Address can be blocked by idpAdmin which causes the address to behave as unverified and has to be unblocked by idp admin before being able to reach the verified status again.
 
 ![Address state FSM](./assets/addressStateFSM.png)
 
@@ -259,8 +259,7 @@ Advantages of this approach:
 
 1. **Automatic execution**: No need for manual intervention or external services to trigger the reset
 2. **Decentralized operation**: Fully on-chain without dependencies on external schedulers
-3. **Day precision**: Uses integer division with `1 days` to ensure exact day boundaries
-4. **Storage efficiency**: Leverages existing `balanceHolders` array instead of duplicate structures
+3. **Storage efficiency**: Uses existing `balanceHolders` array instead of duplicate structures
 
 Disadvantages of this approach:
 
