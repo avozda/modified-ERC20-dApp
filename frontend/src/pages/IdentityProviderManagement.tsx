@@ -127,8 +127,6 @@ export function IdentityProviderManagement() {
                     </form>
                 </CardContent>
             </Card>
-
-            {/* Remove Identity Provider Form */}
             <Card>
                 <CardHeader>
                     <CardTitle>Remove Identity Provider</CardTitle>
